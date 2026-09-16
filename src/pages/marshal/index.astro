@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getEventConfig } from '../../lib/config/loadEventConfig';
+import MarshalApp from '../../components/react/MarshalApp';
+
+export const prerender = false;
+
+const cfg = getEventConfig();
+const label = Astro.locals.marshalLabel ?? null;
+---
+
+<BaseLayout title="Marshal scanner">
+  <main class="mx-auto flex min-h-screen w-full max-w-md flex-col gap-6 px-4 py-8">
+    <header class="flex items-center justify-between">
+      <div class="flex flex-col gap-1">
+        <p class="text-xs uppercase tracking-widest text-zinc-500">{cfg.event_name}</p>
+        <h1 class="text-2xl font-semibold">Marshal scanner</h1>
+      </div>
+      {label && <span class="text-sm text-zinc-400">{label}</span>}
+    </header>
+
+    <MarshalApp client:load />
+
+    <p class="text-center text-xs text-zinc-600">
+      Camera QR scanning lands in the feature pass — use the manual entry to test redemption now.
+    </p>
+  </main>
+</BaseLayout>
