@@ -35,9 +35,19 @@ export default {
           '25%': { transform: 'translateX(-2px) rotate(-3deg)' },
           '75%': { transform: 'translateX(2px) rotate(3deg)' },
         },
+        /**
+         * Overshoot-then-settle scale for the permanent chest-open swap when all
+         * missions are completed (`ui-spec.md` §6). Runs once for ~400ms.
+         */
+        'pop-in': {
+          '0%': { transform: 'scale(0.7)' },
+          '60%': { transform: 'scale(1.05)' },
+          '100%': { transform: 'scale(1)' },
+        },
       },
       animation: {
         'chest-shake': 'chest-shake 0.5s ease-in-out',
+        'pop-in': 'pop-in 0.4s ease-out',
       },
       colors: {
         teal: {
