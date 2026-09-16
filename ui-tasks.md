@@ -21,7 +21,7 @@
 
 ## Phase 2: Shell & Global Scaffolding
 
-- [ ] Create `src/components/shell/AppShell.tsx`. Root wrapper: `relative min-h-screen bg-gradient-to-b from-teal-50 via-emerald-50 to-white overflow-hidden`. Accepts children. Verify: page fills full viewport height with no gradient banding or horizontal scroll at 375px width.
+- [x] Create `src/components/shell/AppShell.tsx`. Root wrapper: `relative min-h-screen bg-gradient-to-b from-teal-50 via-emerald-50 to-white overflow-hidden`. Accepts children. Verify: page fills full viewport height with no gradient banding or horizontal scroll at 375px width.
 - [ ] Create `src/components/shell/BackgroundDecor.tsx`. Absolutely-positioned decorative bubble `<div>`s using `bg-teal-200/40` and `bg-teal-300/30`, `rounded-full`, positioned per mockup corners. Set `pointer-events-none` and `aria-hidden="true"`. Verify: bubbles render behind content (`z-0`) and don't block taps on real UI.
 - [ ] Create `src/components/shell/EventHeader.tsx`. Renders title (`text-slate-800`, bold, centered) and subtitle (`text-slate-500`, smaller). Props: `title: string`, `subtitle: string`. Verify: text matches "TechFair 2025" / "Aug 28 - 29, 2025 • Main Campus" pixel-for-pixel against mockup spacing (`pt-8 pb-2`).
 - [ ] Create `src/components/hero/MascotChestHero.tsx` as a layout-only container: `relative z-10 flex justify-center items-center h-40`. Renders `<img>` slots for mascot and chest (logic wired in Phase 4). No animation logic yet — static `mascot-idle.png` + `chest-closed.png`. Verify: both images render centered, chest visually overlaps mascot's arms per mockup.
