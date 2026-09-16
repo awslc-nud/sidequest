@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Tailwind v4 is CSS-first and doesn't auto-discover JS configs; load the
+   root config explicitly so the mission-tracker palette tokens apply. */
+@config "../../tailwind.config.mjs";
+
 /* ─────────────────────────────────────────────────────────────
    Structural baseline (dark neutral slate/zinc).
    Design tokens / theme will land here once ui-spec arrives;
