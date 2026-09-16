@@ -173,4 +173,4 @@ are open items if pixel-perfect parity is required.
 | `5b093df` | latch all-complete state permanently on final mission |
 | `d0e976f` | wire mascot chest hero to shake state with flicker-free cross-fade |
 | `5955bae` | add permanent chest-open and excited mascot state |
-| _pending_ | assemble mission tracker screen fully (Phase 4 complete) |
+| `93c8b0b` | assemble mission tracker screen with full state wiring (Phase 4 complete) |
