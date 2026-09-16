@@ -24,6 +24,21 @@ export default {
       borderRadius: {
         panel: '2.5rem',
       },
+      /**
+       * Rapid vibration applied to the closed chest for 500ms when a non-final
+       * mission is completed (`ui-spec.md` §6). Mirrors the spec's keyframe:
+       * ±2px translate / ±3° rotate on alternating quarter-frames.
+       */
+      keyframes: {
+        'chest-shake': {
+          '0%, 100%': { transform: 'translateX(0) rotate(0)' },
+          '25%': { transform: 'translateX(-2px) rotate(-3deg)' },
+          '75%': { transform: 'translateX(2px) rotate(3deg)' },
+        },
+      },
+      animation: {
+        'chest-shake': 'chest-shake 0.5s ease-in-out',
+      },
       colors: {
         teal: {
           /** Progress track (unfilled) — `ui-spec.md` §1.1. */
