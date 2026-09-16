@@ -1,0 +1,84 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getEventConfig } from '../../lib/config/loadEventConfig';
+import { createMarshalSession, isMarshalSecret, validateMarshal } from '../../lib/marshal';
+import { requestIsSecure } from '../../lib/session';
+import { getPrisma } from '../../lib/db/client';
+
+export const prerender = false;
+
+const method = Astro.request.method;
+let error: string | null = null;
+
+if (method === 'POST') {
+  const form = await Astro.request.formData().catch(() => null);
+  const passphrase = String(form?.get('passphrase') ?? '');
+  const label = String(form?.get('label') ?? '');
+  if (isMarshalSecret(passphrase)) {
+    await createMarshalSession(Astro.cookies, await getPrisma(), {
+      label,
+      secure: requestIsSecure(Astro.url, Astro.request.headers),
+    });
+    return Astro.redirect('/marshal', 302);
+  }
+  Astro.response.status = 403;
+  error = 'Incorrect passphrase. Please try again.';
+} else {
+  // Already signed in? Send them straight to the scanner.
+  const existing = await validateMarshal(Astro.cookies, await getPrisma());
+  if (existing) {
+    return Astro.redirect('/marshal', 302);
+  }
+}
+
+const cfg = getEventConfig();
+---
+
+<BaseLayout title="Marshal sign in">
+  <main class="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-4 py-8">
+    <header class="flex flex-col gap-1">
+      <p class="text-xs uppercase tracking-widest text-zinc-500">{cfg.event_name}</p>
+      <h1 class="text-2xl font-semibold">Marshal sign in</h1>
+      <p class="text-sm text-zinc-400">Enter the event passphrase shared by your lead.</p>
+    </header>
+
+    <form method="post" class="flex flex-col gap-4">
+      <label class="flex flex-col gap-1.5 text-sm">
+        <span class="text-zinc-300">Passphrase</span>
+        <input
+          name="passphrase"
+          type="password"
+          required
+          autocomplete="current-password"
+          autofocus
+          class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-zinc-100 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+        />
+      </label>
+
+      <label class="flex flex-col gap-1.5 text-sm">
+        <span class="text-zinc-300">Table label (optional)</span>
+        <input
+          name="label"
+          type="text"
+          placeholder="e.g. North Gate"
+          class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-zinc-100 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+        />
+      </label>
+
+      {error && (
+        <p role="alert" class="rounded-lg border border-red-900/60 bg-red-950/40 px-3 py-2 text-sm text-red-300">
+          {error}
+        </p>
+      )}
+
+      <button
+        type="submit"
+        class="rounded-lg bg-zinc-100 px-4 py-2.5 font-medium text-zinc-900 hover:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-400"
+      >
+        Sign in
+      </button>
+    </form>
+
+      <p class="text-xs text-zinc-600">One shared passphrase for all marshals.</p>
+  </main>
+</BaseLayout>
