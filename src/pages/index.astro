@@ -1,18 +1,15 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getEventConfig } from '../lib/config/loadEventConfig';
-import AttendeeApp from '../components/react/AttendeeApp';
+import MissionsScreen from '../screens/MissionsScreen';
 
 const cfg = getEventConfig();
 ---
 
-<BaseLayout title={cfg.event_name} description="SideQuest — event photo quests">
-  <main class="mx-auto flex min-h-screen w-full max-w-md flex-col gap-6 px-4 py-8">
-    <header class="flex flex-col gap-1">
-      <p class="text-xs uppercase tracking-widest text-zinc-500">SideQuest</p>
-      <h1 class="text-2xl font-semibold">{cfg.event_name}</h1>
-    </header>
-
-    <AttendeeApp client:load />
-  </main>
+<BaseLayout
+  title={cfg.event_name}
+  description="SideQuest — event photo quests"
+  bodyClass="bg-white text-slate-800 antialiased"
+>
+  <MissionsScreen client:load />
 </BaseLayout>

@@ -183,6 +183,7 @@ are open items if pixel-perfect parity is required.
 | `adad6e4` | cap content width on wide viewports |
 | `9028eaf` | add touch and keyboard accessibility to tabs and mission rows |
 | `d6d76e4` | complete final visual qa pass and document open items (Phase 5 complete) |
+| `_pending_` | mount mission tracker screen at / |
 
 ---
 
@@ -200,6 +201,10 @@ are open items if pixel-perfect parity is required.
 - `GET /api/config` is not wired to the header/missions (hardcoded to the
   mockup). This mission tracker is a standalone UI simulation of the seeded
   data; reconciling it with the server progress API is outside `ui-tasks.md`.
-- `MissionsScreen` is not yet mounted on an Astro route — it is exercised only
-  by tests. Wiring it into `src/pages/index.astro` (replacing the older
-  attendee UI) is a separate integration step.
+- `MissionsScreen` is mounted at `/` (`src/pages/index.astro`, `client:load`),
+  replacing the earlier `AttendeeApp`. `BaseLayout` gained an optional
+  `bodyClass` so this light screen isn't forced onto the dark body used by the
+  marshal pages.
+- **Header copy mismatch:** the page header is the mockup's "TechFair 2025",
+  while `event.config.json` / the document title say "Tech Summit 2026". Wire the
+  header to `GET /api/config` (or event config props) if they should match.
