@@ -3,19 +3,22 @@ import BackgroundDecor from '../components/shell/BackgroundDecor';
 import EventHeader from '../components/shell/EventHeader';
 import MainPanel from '../components/shell/MainPanel';
 import MascotChestHero from '../components/hero/MascotChestHero';
+import ProgressTracker from '../components/missions/ProgressTracker';
+import TabSwitcher from '../components/missions/TabSwitcher';
+import MissionList from '../components/missions/MissionList';
 import { useMissionState } from '../hooks/useMissionState';
 
 /**
  * Top-level TechFair mission tracker screen (`ui-spec.md` §2 layout skeleton).
  *
- * Composition only: the floating panel is intentionally empty for now — the
- * progress tracker, tab switcher and mission list are wired in Phase 3–4.
+ * `useMissionState` is the single source of truth for mission completion; its
+ * output drives the hero animation, the progress readout and the mission list.
  *
  * Header copy is hardcoded to the `ui-spec.md` mockup values; if the event ever
  * becomes config-driven this should read from `GET /api/config` instead.
  */
 export default function MissionsScreen() {
-  const { isShaking, isAllCompleted } = useMissionState();
+  const { missions, isShaking, isAllCompleted, completedCount, toggleMission } = useMissionState();
 
   return (
     <AppShell>
@@ -23,7 +26,10 @@ export default function MissionsScreen() {
       <EventHeader title="TechFair 2025" subtitle="Aug 28 - 29, 2025 • Main Campus" />
       <MascotChestHero isShaking={isShaking} isAllCompleted={isAllCompleted} />
       <MainPanel>
-        {/* Progress tracker, tab switcher and mission list land in Phases 3–4. */}
+        <ProgressTracker completed={completedCount} total={missions.length} />
+        <TabSwitcher>
+          <MissionList missions={missions} onToggle={toggleMission} />
+        </TabSwitcher>
       </MainPanel>
     </AppShell>
   );

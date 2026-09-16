@@ -65,6 +65,11 @@ reach for `tokens.ts` only where a class can't express the value.
 | 5 | Bubble positions | Approximated | No mockup image in repo; offsets centralized for easy tuning |
 | 6 | `MainPanel` children | Optional | Panel is intentionally empty during scaffolding |
 | 7 | React 19 resource hoisting | Hero located by container class in tests | React 19 hoists `<link rel="preload" as="image">` to the top of SSR output |
+| 8 | Mascot state swap | Both mascot images mounted + opacity cross-fade | `src` swap could flash before the new asset loads; cross-fade guarantees "no flicker" |
+| 9 | `isAllCompleted` | One-way latch, not derived | `ui-spec.md` §6 says it must not reset when a mission is later un-checked |
+| 10 | Chest pop-in | Only on the false→true transition via effect | Prevents replaying when mounted already all-complete |
+| 11 | Excited mascot | `mascot-idle.png` + `animate-bounce` | **No `mascot-excited.png` asset exists** (ui-spec asset gap) — flag to design |
+| 12 | Hook `progressPercent` | Exposed but unused by the screen | `ProgressTracker` derives its own percent from completed/total |
 
 `ui-spec.md` has no typography section and no mockup raster is checked in — both
 are open items if pixel-perfect parity is required.
@@ -86,7 +91,7 @@ are open items if pixel-perfect parity is required.
 
 | Component | Purpose | State |
 |---|---|---|
-| `MascotChestHero.tsx` | Mascot + chest images (layout only) | ✅ layout / ⏳ state wiring (Phase 4) |
+| `MascotChestHero.tsx` | Mascot + chest; shake cross-fade, permanent open/excited | ✅ |
 
 ### Primitives (`src/components/primitives/`)
 
@@ -102,7 +107,24 @@ are open items if pixel-perfect parity is required.
 
 | Component | Purpose | State |
 |---|---|---|
-| `MissionsScreen.tsx` | Top-level composition | ✅ scaffold / ⏳ full wiring (Phase 4) |
+| `MissionsScreen.tsx` | Top-level composition, wired to `useMissionState` | ✅ |
+
+### Missions (`src/components/missions/`)
+
+| Component | Notes | State |
+|---|---|---|
+| `types.ts` | `Mission` / `MissionIcon` UI types (ui-spec §5) | ✅ |
+| `seed.ts` | The 5 mockup missions (2/5 complete) | ✅ |
+| `ProgressTracker.tsx` | Label + `ProgressBar`; derives percent | ✅ |
+| `TabSwitcher.tsx` | Owns `activeTab`, swaps Missions/Event Info panels | ✅ |
+| `MissionRow.tsx` | Tappable card; a11y roles added Phase 5 | ✅ |
+| `MissionList.tsx` | `<ul>` of rows; empty state added Phase 5 | ✅ |
+
+### Hooks (`src/hooks/`)
+
+| Hook | Notes | State |
+|---|---|---|
+| `useMissionState.ts` | Missions, `isShaking` (500ms), latched `isAllCompleted`, derived counts, `toggleMission` | ✅ |
 
 ---
 
@@ -142,3 +164,13 @@ are open items if pixel-perfect parity is required.
 | `11342a8` | add tab pill primitive |
 | `3ffadbd` | add progress bar primitive |
 | `8890a46` | add mission text primitive |
+| `c890c85` | add ui build notes documenting decisions and component inventory |
+| `3094aae` | add progress tracker composite |
+| `04c061f` | add tab switcher composite |
+| `e09a86a` | add mission row composite with shared ui mission type |
+| `cfae5c4` | add mission list and seeded missions |
+| `ccc8eba` | add mission state hook with shake sequencing |
+| `5b093df` | latch all-complete state permanently on final mission |
+| `d0e976f` | wire mascot chest hero to shake state with flicker-free cross-fade |
+| `5955bae` | add permanent chest-open and excited mascot state |
+| _pending_ | assemble mission tracker screen fully (Phase 4 complete) |
