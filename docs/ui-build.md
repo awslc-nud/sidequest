@@ -183,7 +183,7 @@ are open items if pixel-perfect parity is required.
 | `adad6e4` | cap content width on wide viewports |
 | `9028eaf` | add touch and keyboard accessibility to tabs and mission rows |
 | `d6d76e4` | complete final visual qa pass and document open items (Phase 5 complete) |
-| `_pending_` | mount mission tracker screen at / |
+| `03f1b26` | mount mission tracker screen at / |
 
 ---
 
