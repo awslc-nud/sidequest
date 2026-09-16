@@ -11,7 +11,7 @@
 ## Phase 1: Design Tokens & Tailwind Base Setup
 
 - [x] Create `tailwind.config.js` theme extension block with custom color tokens: `teal-800` (tab active / primary accent), `emerald-500` (progress fill / success), `teal-100` (progress track), `slate-800` (headings), `slate-500`/`slate-400` (muted text). Verify: run `npx tailwindcss --help` build with no errors and tokens resolve in a throwaway `<div className="bg-teal-800">`.
-- [ ] Add custom border radius scale to `tailwind.config.js` if `rounded-3xl`/`rounded-[2.5rem]` values from `ui-spec.md` aren't covered by default Tailwind scale (add `borderRadius: { 'panel': '2.5rem' }`). Verify: inspect a test div and confirm computed `border-radius` matches spec value.
+- [x] Add custom border radius scale to `tailwind.config.js` if `rounded-3xl`/`rounded-[2.5rem]` values from `ui-spec.md` aren't covered by default Tailwind scale (add `borderRadius: { 'panel': '2.5rem' }`). Verify: inspect a test div and confirm computed `border-radius` matches spec value.
 - [ ] Create `src/styles/globals.css` and import Tailwind base/components/utilities. Set base `font-family` (per `ui-spec.md` typography) on `body`. Verify: default page renders with correct font, no FOUC.
 - [ ] Add custom keyframe utility `chest-shake` to `tailwind.config.js` `extend.keyframes`/`extend.animation` (±3° rotate / ±2px translate, per spec's rapid vibration rule). Name the animation class `animate-chest-shake`. Verify: apply class to a placeholder `<div>` and visually confirm rapid side-to-side wobble.
 - [ ] Add custom `pop-in` scale keyframe utility (`scale(0.7 → 1.05 → 1)`) named `animate-pop-in` for the chest-open transition. Verify: apply to a placeholder image and confirm smooth overshoot-then-settle scale animation (~400ms).

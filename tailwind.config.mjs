@@ -16,6 +16,14 @@
 export default {
   theme: {
     extend: {
+      /**
+       * Top-panel radius. The default scale caps at `rounded-3xl` (1.5rem), while
+       * `ui-spec.md` §1.2 / the layout skeleton call for a 2.5rem top panel
+       * (`rounded-t-panel`), which visually tucks under the hero zone.
+       */
+      borderRadius: {
+        panel: '2.5rem',
+      },
       colors: {
         teal: {
           /** Progress track (unfilled) — `ui-spec.md` §1.1. */
