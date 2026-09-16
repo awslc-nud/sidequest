@@ -36,6 +36,10 @@ html {
   color-scheme: dark;
 }
 
+/* Base typeface.
+   `ui-spec.md` does not prescribe a typeface, so we inherit Tailwind's system
+   sans stack (no webfont request -> no FOUC). */
 body {
+  font-family: var(--font-sans);
   min-height: 100vh;
 }
