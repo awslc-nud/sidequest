@@ -1,19 +1,35 @@
 import MissionRow from './MissionRow';
+import MissionRowSkeleton from './MissionRowSkeleton';
 import type { Mission } from './types';
+
+/** Number of placeholder rows to show while loading. */
+const SKELETON_ROWS = 5;
 
 interface MissionListProps {
   missions: Mission[];
   /** Called with the mission id when a row is toggled. */
   onToggle: (id: string) => void;
+  /** When true, render skeleton placeholders instead of rows. */
+  isLoading?: boolean;
 }
 
 /**
  * Vertical stack of mission rows (`ui-spec.md` §2 mission list).
  *
- * Falls back to a centered empty state when there are no missions, so the panel
- * never collapses to an unannounced empty `<ul>`.
+ * Shows skeletons while loading, a centered empty state when there are no
+ * missions, and the real rows otherwise.
  */
-export default function MissionList({ missions, onToggle }: MissionListProps) {
+export default function MissionList({ missions, onToggle, isLoading = false }: MissionListProps) {
+  if (isLoading) {
+    return (
+      <ul className="flex flex-col space-y-3">
+        {Array.from({ length: SKELETON_ROWS }, (_, i) => (
+          <MissionRowSkeleton key={i} />
+        ))}
+      </ul>
+    );
+  }
+
   if (missions.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 py-8 text-center">
