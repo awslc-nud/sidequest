@@ -20,14 +20,26 @@ interface MissionRowProps {
  * Tappable mission card (`ui-spec.md` §3).
  *
  * The click handler is on the `<li>` itself so the whole card is the hit area,
- * not just the status icon. Interactive roles/keyboard semantics are added in
- * the Phase 5 accessibility pass.
+ * not just the status icon. It exposes `role="checkbox"` + `aria-checked` for
+ * assistive tech and is keyboard-operable via Enter/Space (44px+ target by
+ * construction: `p-4` around a 44px content row).
  */
 export default function MissionRow({ mission, onToggle }: MissionRowProps) {
+  const toggle = () => onToggle(mission.id);
+
   return (
     <li
-      onClick={() => onToggle(mission.id)}
-      className="flex cursor-pointer items-center justify-between gap-3 p-4 bg-white rounded-2xl shadow-sm"
+      role="checkbox"
+      aria-checked={mission.completed}
+      tabIndex={0}
+      onClick={toggle}
+      onKeyDown={(event) => {
+        if (event.key === ' ' || event.key === 'Enter') {
+          event.preventDefault();
+          toggle();
+        }
+      }}
+      className="flex cursor-pointer items-center justify-between gap-3 p-4 bg-white rounded-2xl shadow-sm focus-visible:ring-2 focus-visible:ring-teal-800 focus-visible:outline-none"
     >
       <IconTile icon={ICONS[mission.icon]} />
       <MissionText title={mission.title} description={mission.description} />
