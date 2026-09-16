@@ -70,6 +70,8 @@ reach for `tokens.ts` only where a class can't express the value.
 | 10 | Chest pop-in | Only on the false→true transition via effect | Prevents replaying when mounted already all-complete |
 | 11 | Excited mascot | `mascot-idle.png` + `animate-bounce` | **No `mascot-excited.png` asset exists** (ui-spec asset gap) — flag to design |
 | 12 | Hook `progressPercent` | Exposed but unused by the screen | `ProgressTracker` derives its own percent from completed/total |
+| 13 | Responsive cap location | Non-positioned `mx-auto max-w-md` wrapper inside `AppShell` | Keeps content card-width on desktop while `BackgroundDecor`'s `absolute inset-0` still resolves against the positioned root and spans the viewport |
+| 14 | Keyboard semantics | `role="checkbox"` + Enter/Space on rows | Follows task 62; rows are `tabIndex=0` with `focus-visible` ring |
 
 `ui-spec.md` has no typography section and no mockup raster is checked in — both
 are open items if pixel-perfect parity is required.
@@ -117,8 +119,9 @@ are open items if pixel-perfect parity is required.
 | `seed.ts` | The 5 mockup missions (2/5 complete) | ✅ |
 | `ProgressTracker.tsx` | Label + `ProgressBar`; derives percent | ✅ |
 | `TabSwitcher.tsx` | Owns `activeTab`, swaps Missions/Event Info panels | ✅ |
-| `MissionRow.tsx` | Tappable card; a11y roles added Phase 5 | ✅ |
-| `MissionList.tsx` | `<ul>` of rows; empty state added Phase 5 | ✅ |
+| `MissionRow.tsx` | Tappable card; `role="checkbox"`/`aria-checked`, keyboard operable | ✅ |
+| `MissionList.tsx` | `<ul>` of rows; empty state + `isLoading` skeletons | ✅ |
+| `MissionRowSkeleton.tsx` | `animate-pulse` placeholder matching row footprint | ✅ |
 
 ### Hooks (`src/hooks/`)
 
@@ -174,3 +177,29 @@ are open items if pixel-perfect parity is required.
 | `d0e976f` | wire mascot chest hero to shake state with flicker-free cross-fade |
 | `5955bae` | add permanent chest-open and excited mascot state |
 | `93c8b0b` | assemble mission tracker screen with full state wiring (Phase 4 complete) |
+| `a899b01` | update ui build notes for phase 4 |
+| `fe41fc5` | add mission list empty state |
+| `4debcf6` | add mission row skeleton loading state |
+| `adad6e4` | cap content width on wide viewports |
+| `9028eaf` | add touch and keyboard accessibility to tabs and mission rows |
+| `_pending_` | final visual QA pass (Phase 5 complete) |
+
+---
+
+## 7. Open items / follow-ups
+
+- **No mockup raster** is checked into the repo, so the "pixel-for-pixel"
+  comparisons requested by several tasks were verified structurally (class
+  tokens + compiled CSS), not by pixel diff. A `<2px` parity check needs the
+  original mockup.
+- **`mascot-excited.png` is missing** — the all-complete mascot reuses
+  `mascot-idle.png` with `animate-bounce`. Request the asset from design if a
+  distinct excited pose is wanted.
+- **`chest-closed.png` naming** — the repo ships `chest-locked.png`; the code
+  uses the existing filename.
+- `GET /api/config` is not wired to the header/missions (hardcoded to the
+  mockup). This mission tracker is a standalone UI simulation of the seeded
+  data; reconciling it with the server progress API is outside `ui-tasks.md`.
+- `MissionsScreen` is not yet mounted on an Astro route — it is exercised only
+  by tests. Wiring it into `src/pages/index.astro` (replacing the older
+  attendee UI) is a separate integration step.
