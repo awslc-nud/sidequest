@@ -1,0 +1,111 @@
+// ─────────────────────────────────────────────────────────────
+// SideQuest — Prisma schema (v1/MVP)
+//
+// Target: SQLite (WAL). Prisma ORM v7 (query-compiler client) via
+// the better-sqlite3 driver adapter. Connection URL for the CLI
+// (migrate/db push) lives in `prisma.config.ts` (`datasource.url`).
+//
+// Timestamps are Unix epoch milliseconds stored as BigInt.
+// `event_slug` partitions every table so a single DB file can, in
+// principle, serve multiple events sequentially without collisions.
+// No table stores raw photo bytes — only file paths + metadata.
+// ─────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/lib/db/generated"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ─────────────────────────────────────────────────────────────
+// SESSIONS: one row per anonymous attendee session
+// ─────────────────────────────────────────────────────────────
+model Session {
+  id           String   @id @default(uuid())
+  eventSlug    String   @map("event_slug")
+  createdAt    BigInt   @map("created_at")
+  lastSeenAt   BigInt   @map("last_seen_at")
+  feedbackDone Boolean  @default(false) @map("feedback_done")
+  unlockedAt   BigInt?  @map("unlocked_at") // set when chest opens (NULL until N/N)
+
+  submissions Submission[]
+  claim       Claim?
+  feedback    FeedbackResponse?
+
+  @@index([eventSlug])
+  @@map("sessions")
+}
+
+// ─────────────────────────────────────────────────────────────
+// SUBMISSIONS: one row per accepted photo mission upload
+// ─────────────────────────────────────────────────────────────
+model Submission {
+  id              Int    @id @default(autoincrement())
+  sessionId       String @map("session_id")
+  session         Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  eventSlug       String @map("event_slug")
+  promptId        String @map("prompt_id") // e.g. "prompt_2_stage"
+  clientCaptureId String @map("client_capture_id") // UUID minted client-side; idempotent retry key
+  filePath        String @map("file_path") // relative path under data/uploads/
+  fileSizeBytes   Int    @map("file_size_bytes") // 1..2_000_000
+  receivedAt      BigInt @map("received_at")
+
+  @@unique([sessionId, promptId]) // one accepted submission per mission
+  @@unique([sessionId, clientCaptureId]) // idempotent retry — re-POST of same capture never double-inserts
+  @@index([sessionId])
+  @@index([eventSlug, promptId])
+  @@map("submissions")
+}
+
+// ─────────────────────────────────────────────────────────────
+// CLAIMS: one row per minted swag pass (email <-> token)
+// ─────────────────────────────────────────────────────────────
+model Claim {
+  id               Int     @id @default(autoincrement())
+  eventSlug        String  @map("event_slug")
+  sessionId        String  @unique @map("session_id") // one claim per session
+  session          Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  studentEmail     String  @map("student_email") // normalized lowercase
+  claimToken       String  @unique @map("claim_token") // UUIDv4, encoded into QR
+  shortCode        String  @map("short_code") // 4-char alphanumeric fallback
+  lootSnapshot     String  @map("loot_snapshot") // JSON string, loot at mint time
+  isClaimed        Boolean @default(false) @map("is_claimed")
+  claimedAt        BigInt? @map("claimed_at") // set atomically on redemption
+  claimedByMarshal String? @map("claimed_by_marshal") // generic label only — no real marshal identity exists (§3.8)
+  createdAt        BigInt  @map("created_at")
+
+  @@unique([eventSlug, studentEmail]) // hard "one redemption per institutional email" rule
+  @@unique([eventSlug, shortCode])
+  @@index([claimToken])
+  @@map("claims")
+}
+
+// ─────────────────────────────────────────────────────────────
+// FEEDBACK: optional keystone survey responses
+// ─────────────────────────────────────────────────────────────
+model FeedbackResponse {
+  id          Int     @id @default(autoincrement())
+  sessionId   String  @unique @map("session_id")
+  session     Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  eventSlug   String  @map("event_slug")
+  answersJson String  @map("answers_json") // free-form JSON blob, shape defined by config
+  submittedAt BigInt  @map("submitted_at")
+
+  @@map("feedback_responses")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MARSHAL_SESSIONS: shared-passphrase auth cookie -> validity window
+// ─────────────────────────────────────────────────────────────
+model MarshalSession {
+  token     String  @id // random 32-byte hex, stored in httpOnly cookie
+  createdAt BigInt  @map("created_at")
+  expiresAt BigInt  @map("expires_at")
+  label     String? // optional human label, e.g. "North Gate table"
+
+  @@index([expiresAt])
+  @@map("marshal_sessions")
+}

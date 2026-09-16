@@ -39,8 +39,15 @@
               nodejs
               pnpm
               yarn
+              prisma-engines # provides the schema-engine binary used by the Prisma CLI on NixOS
               self.formatter.${system}
             ];
+            # Prisma does not publish prebuilt engines for NixOS, so point the CLI
+            # at the schema-engine binary provided by nixpkgs. The generated Prisma
+            # Client itself is engine-free (query compiler + driver adapter).
+            shellHook = ''
+              export PRISMA_SCHEMA_ENGINE_BINARY="${pkgs.prisma-engines}/bin/schema-engine"
+            '';
           };
         }
       );

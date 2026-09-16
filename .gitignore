@@ -17,6 +17,12 @@ pnpm-debug.log*
 .env
 .env.production
 
+# local runtime data (SQLite db + uploaded media)
+data/
+
+# prisma generated client
+src/lib/db/generated/
+
 # macOS-specific files
 .DS_Store
 
