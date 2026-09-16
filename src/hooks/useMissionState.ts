@@ -29,16 +29,20 @@ export interface MissionState {
  * - un-checking never shakes;
  * - updates are immutable.
  *
- * The permanent `isAllCompleted` latch is added in the next task.
+ * The permanent `isAllCompleted` latch never resets, even if a mission is later
+ * un-checked (`ui-spec.md` §6).
  */
 export function useMissionState(): MissionState {
   const [missions, setMissions] = useState<Mission[]>(() => SEED_MISSIONS.map((m) => ({ ...m })));
   const [isShaking, setIsShaking] = useState(false);
+  // Latched (one-way) flag: set true when the list first becomes fully complete.
+  const [isAllCompleted, setIsAllCompleted] = useState<boolean>(
+    () => SEED_MISSIONS.length > 0 && SEED_MISSIONS.every((m) => m.completed),
+  );
   const shakeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const completedCount = missions.filter((m) => m.completed).length;
   const progressPercent = missions.length > 0 ? (completedCount / missions.length) * 100 : 0;
-  const isAllCompleted = missions.length > 0 && missions.every((m) => m.completed);
 
   const toggleMission = useCallback(
     (id: string) => {
@@ -52,8 +56,11 @@ export function useMissionState(): MissionState {
       const wasCompletion = !target.completed;
       const nowAllCompleted = next.every((m) => m.completed);
 
-      // Shake only on a completion that does not finish the whole list.
-      if (wasCompletion && !nowAllCompleted) {
+      if (nowAllCompleted) {
+        // Final mission: latch permanently and skip the shake path entirely.
+        setIsAllCompleted(true);
+      } else if (wasCompletion) {
+        // A single, non-final completion triggers the brief shake.
         setIsShaking(true);
         if (shakeTimer.current) clearTimeout(shakeTimer.current);
         shakeTimer.current = setTimeout(() => setIsShaking(false), SHAKE_DURATION_MS);
