@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 
 interface MainPanelProps {
-  /** Panel content — progress, tabs and the mission list. */
-  children: ReactNode;
+  /** Panel content — progress, tabs and the mission list. Optional while empty. */
+  children?: ReactNode;
 }
 
 /**
