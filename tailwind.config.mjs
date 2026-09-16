@@ -1,3 +1,5 @@
+import { colors, radius } from './src/styles/tokens';
+
 /**
  * Tailwind CSS configuration — TechFair Mission Tracker.
  *
@@ -5,24 +7,24 @@
  * JavaScript config, so this file is loaded explicitly from
  * `src/styles/global.css` via the `@config` directive.
  *
- * `theme.extend.colors` (rather than `theme.colors`) is used so the full default
- * palette is preserved and only the mission-tracker roles below are pinned. The
- * values mirror Tailwind's own v4 tokens so there is no visual drift; keeping
- * them named here makes the palette a single, reviewable source of truth for
- * `ui-spec.md` §1.1.
+ * `theme.extend.colors` (rather than `theme.colors`) preserves the full default
+ * palette and only pins the mission-tracker roles. Raw values live in
+ * `src/styles/tokens.ts` and are imported here so utilities and runtime JS share
+ * one source of truth (Tailwind loads this file through `jiti`, which resolves
+ * the TS import).
  *
  * @type {import('tailwindcss').Config}
  */
 export default {
   theme: {
     extend: {
-      /**
-       * Top-panel radius. The default scale caps at `rounded-3xl` (1.5rem), while
-       * `ui-spec.md` §1.2 / the layout skeleton call for a 2.5rem top panel
-       * (`rounded-t-panel`), which visually tucks under the hero zone.
-       */
       borderRadius: {
-        panel: '2.5rem',
+        /**
+         * Top-panel radius. The default scale caps at `rounded-3xl` (1.5rem),
+         * while `ui-spec.md` §1.2 / the layout skeleton call for a 2.5rem top
+         * panel (`rounded-t-panel`) that tucks under the hero zone.
+         */
+        panel: radius.panel,
       },
       /**
        * Rapid vibration applied to the closed chest for 500ms when a non-final
@@ -52,21 +54,21 @@ export default {
       colors: {
         teal: {
           /** Progress track (unfilled) — `ui-spec.md` §1.1. */
-          100: 'oklch(95.3% 0.051 180.801)',
+          100: colors.progressTrack,
           /** Primary accent — active tab pill and primary actions. */
-          800: 'oklch(43.7% 0.078 188.216)',
+          800: colors.primary,
         },
         emerald: {
           /** Progress fill / success state. */
-          500: 'oklch(69.6% 0.17 162.48)',
+          500: colors.success,
         },
         slate: {
           /** Muted text — mission descriptions. */
-          400: 'oklch(70.4% 0.04 256.788)',
+          400: colors.subtle,
           /** Muted text — header subtext and progress label. */
-          500: 'oklch(55.4% 0.046 257.417)',
+          500: colors.muted,
           /** Heading / mission title text. */
-          800: 'oklch(27.9% 0.041 260.031)',
+          800: colors.heading,
         },
       },
     },

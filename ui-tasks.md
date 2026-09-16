@@ -15,7 +15,7 @@
 - [x] Create `src/styles/globals.css` and import Tailwind base/components/utilities. Set base `font-family` (per `ui-spec.md` typography) on `body`. Verify: default page renders with correct font, no FOUC.
 - [x] Add custom keyframe utility `chest-shake` to `tailwind.config.js` `extend.keyframes`/`extend.animation` (±3° rotate / ±2px translate, per spec's rapid vibration rule). Name the animation class `animate-chest-shake`. Verify: apply class to a placeholder `<div>` and visually confirm rapid side-to-side wobble.
 - [x] Add custom `pop-in` scale keyframe utility (`scale(0.7 → 1.05 → 1)`) named `animate-pop-in` for the chest-open transition. Verify: apply to a placeholder image and confirm smooth overshoot-then-settle scale animation (~400ms).
-- [ ] Create `src/styles/tokens.ts` exporting named constants for colors/spacing/radius used outside Tailwind (e.g., inline SVG fills, JS-driven width %). Verify: import into a scratch component and confirm values match `ui-spec.md` table exactly (no hex drift).
+- [x] Create `src/styles/tokens.ts` exporting named constants for colors/spacing/radius used outside Tailwind (e.g., inline SVG fills, JS-driven width %). Verify: import into a scratch component and confirm values match `ui-spec.md` table exactly (no hex drift).
 
 ---
 
