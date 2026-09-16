@@ -1,20 +1,59 @@
 {
-  "name": "",
+  "name": "sidequest",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "node": ">=22.12.0"
   },
   "scripts": {
     "dev": "astro dev",
+    "dev:bg": "astro dev --background",
+    "dev:lan": "astro dev --host 0.0.0.0",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "typecheck": "astro check",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:stats": "node scripts/db.mjs stats",
+    "db:reset": "node scripts/db.mjs reset",
+    "db:reset:hard": "node scripts/db.mjs reset --hard",
+    "db:clear-uploads": "node scripts/db.mjs clear-uploads",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
-    "astro": "^7.3.1"
+    "@astrojs/node": "^11.1.5",
+    "@astrojs/react": "^6.0.5",
+    "@prisma/adapter-better-sqlite3": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.3.1",
+    "better-sqlite3": "^12.11.1",
+    "dexie": "^4.4.5",
+    "lucide-react": "^1.42.0",
+    "qrcode": "^1.5.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwindcss": "^4.3.3",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.4.1",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "fake-indexeddb": "^6.2.5",
+    "jsdom": "^30.0.1",
+    "prisma": "^7.7.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.11"
   },
   "allowScripts": {
-    "esbuild": true
+    "esbuild": true,
+    "better-sqlite3": true
   }
 }
