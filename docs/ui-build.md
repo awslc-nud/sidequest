@@ -182,7 +182,7 @@ are open items if pixel-perfect parity is required.
 | `4debcf6` | add mission row skeleton loading state |
 | `adad6e4` | cap content width on wide viewports |
 | `9028eaf` | add touch and keyboard accessibility to tabs and mission rows |
-| `_pending_` | final visual QA pass (Phase 5 complete) |
+| `d6d76e4` | complete final visual qa pass and document open items (Phase 5 complete) |
 
 ---
 
