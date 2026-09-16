@@ -1,0 +1,16 @@
+{
+  "event_name": "Feedback-Off Fixture",
+  "event_slug": "feedback-off-fixture",
+  "allowed_email_domain": "school.edu.ph",
+  "feedback_keystone": {
+    "enabled": false,
+    "questions": []
+  },
+  "loot": [
+    { "id": "sticker_pack", "label": "1x Sticker Pack", "qty": 1 }
+  ],
+  "quests": [
+    { "id": "prompt_1_arrival", "title": "Arrival Selfie", "description": "Snap yourself at the entrance banner." },
+    { "id": "prompt_2_stage", "title": "Stage Slide", "description": "Photograph the current speaker's slide." }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "event_name": "Tech Summit 2026",
+  "event_slug": "tech-summit-2026",
+  "allowed_email_domain": "school.edu.ph",
+  "feedback_keystone": {
+    "enabled": true,
+    "questions": [
+      { "id": "q1", "type": "rating_1_5", "label": "How was the event?" },
+      { "id": "q2", "type": "text", "label": "Any suggestions?" }
+    ]
+  },
+  "loot": [
+    { "id": "sticker_pack", "label": "1x Sticker Pack", "qty": 1 },
+    { "id": "tardigrade_pin", "label": "1x Tardigrade Pin", "qty": 1 }
+  ],
+  "quests": [
+    { "id": "prompt_1_arrival", "title": "Arrival Selfie", "description": "Snap yourself at the entrance banner." },
+    { "id": "prompt_2_stage", "title": "Stage Slide", "description": "Photograph the current speaker's slide." },
+    { "id": "prompt_3_booth", "title": "Sponsor Booth", "description": "Capture a sponsor booth in action." }
+  ]
+}
