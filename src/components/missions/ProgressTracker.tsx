@@ -17,8 +17,8 @@ export default function ProgressTracker({ completed, total }: ProgressTrackerPro
   const percent = total > 0 ? (completed / total) * 100 : 0;
 
   return (
-    <section className="mb-4 flex flex-col items-center">
-      <span className="mb-2 text-sm text-slate-600">
+    <section className="mb-5 flex flex-col items-center">
+      <span className="mb-2.5 text-sm tabular-nums text-slate-600">
         {completed} / {total} completed
       </span>
       <ProgressBar percent={percent} />

@@ -9,10 +9,10 @@ export default function MissionRowSkeleton() {
   return (
     <li
       aria-hidden="true"
-      className="flex animate-pulse items-center justify-between gap-3 p-4 bg-white rounded-2xl shadow-sm"
+      className="flex animate-pulse items-center gap-3.5 rounded-2xl bg-white p-4 shadow-sm"
     >
       <div className="h-10 w-10 shrink-0 rounded-xl bg-slate-100" />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="h-6 w-1/2 rounded bg-slate-100" />
         <div className="h-5 w-3/4 rounded bg-slate-100" />
       </div>

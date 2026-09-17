@@ -70,14 +70,22 @@ reach for `tokens.ts` only where a class can't express the value.
 | 10 | Chest pop-in | Only on the false→true transition via effect | Prevents replaying when mounted already all-complete |
 | 11 | Excited mascot | `mascot-idle.png` + `animate-bounce` | **No `mascot-excited.png` asset exists** (ui-spec asset gap) — flag to design |
 | 12 | Hook `progressPercent` | Exposed but unused by the screen | `ProgressTracker` derives its own percent from completed/total |
-| 13 | Responsive cap location | Non-positioned `mx-auto max-w-md` wrapper inside `AppShell` | Keeps content card-width on desktop while `BackgroundDecor`'s `absolute inset-0` still resolves against the positioned root and spans the viewport |
+| 13 | Responsive cap location | Non-positioned `mx-auto max-w-md` wrapper inside `AppShell` | Keeps content card-width on desktop (the original `BackgroundDecor` it was chosen for has since been removed) |
 | 14 | Keyboard semantics | `role="checkbox"` + Enter/Space on rows | Follows task 62; rows are `tabIndex=0` with `focus-visible` ring |
 | 15 | Hero layout | Mascot removed; chest-only, hero `h-48`, chest `h-32 w-52` | Design request (post-roadmap). Differs from `ui-spec.md` §2 (chest in mascot's arms) |
 | 16 | Shake strength | Escalates with `completedCount / total`; keyframe reads `--chest-shake-x/-rot` (2→8px, 3→12°) set inline | "Every mission done shakes harder", normalized to the dynamic mission total |
 | 17 | Tab navigation removed | Deleted `TabSwitcher.tsx` + `Tab.tsx`; `MissionList` renders directly | Design request (post-roadmap). Differs from `ui-spec.md` §2/§3 tabs |
+| 18 | Status indicator | Filled emerald disc + white `Check` (not `CheckCircle2`), incomplete stays a thin ring | Matches the reference's solid check badge; reads more clearly at a glance |
+| 19 | Background bubbles | Removed; `BackgroundDecor.tsx` deleted and replaced by `UnderwaterBackdrop` (V3) | Design request: the decorative circles made the screen feel "vibe coded" |
+| 20 | Lower-half polish | `gap-3.5` row rhythm, `font-semibold`/`leading-snug` text, press (`active:scale-[0.99]`) + hover feedback | "Look & feel" pass against `reference.png` |
+| 21 | Bottom decoration | **None** — `MainPanel` runs to the bottom edge with a plain white base | Design request: earlier attempts (corner "cloud" of circles, then SVG underwater vegetation) both looked off; the bottom should stay plain |
+| 22 | Chest shake intensity | Generated `chest-shake` keyframes: 9 direction changes, `linear` timing, and `--chest-shake-{x,y,rot,scale}` vars (x 2→12px, y 0.5→5px, rot 2→14°, scale 1→1.04). `shakeIntensity = (completedCount / total) ** SHAKE_INTENSITY_CURVE` (4) | Feedback: speeding up the shake alone didn't read as more intense — added amplitude, vertical jitter, a scale pulse and more alternations. The `count/total` fraction ⇒ the ramp adapts to a dynamic quest count, and the exponent keeps early quests gentle (e.g. 3/5 ≈ 3.3px, 4/5 ≈ 6.1px) |
+| 23 | Underwater backdrop | `UnderwaterBackdrop.tsx` (`z-0`): wavy water-surface band, three blurred sun shafts and a soft spotlight behind the chest, all from `ui-spec.md` §1 teal/emerald/white tokens. Page gradient now starts on `teal-100` instead of `teal-50` | Design request: after removing the bubbles the screen felt too plain; theme is underwater, but no scattered circles. The deeper top gives the white shafts contrast |
+| 24 | Panel surface | `MainPanel` `bg-white` → `bg-teal-50` | Design request: the bottom half looked too plain; uses the spec's "near-white with faint mint tint" surface (`bg-teal-50/40`) so the white mission cards read against it |
 
-`ui-spec.md` has no typography section and no mockup raster is checked in — both
-are open items if pixel-perfect parity is required.
+`ui-spec.md` has no typography section. `reference.png` (the conceptual mockup)
+lives at the repo root and is the visual basis for the look & feel; it is not
+wired into any build step.
 
 ---
 
@@ -88,7 +96,8 @@ are open items if pixel-perfect parity is required.
 | Component | Purpose | State |
 |---|---|---|
 | `AppShell.tsx` | Root wrapper + page gradient + overflow clip | ✅ |
-| `BackgroundDecor.tsx` | Decorative translucent bubbles (`aria-hidden`, `pointer-events-none`) | ✅ |
+| `BackgroundDecor.tsx` | **Removed** — decorative bubbles deleted by design request | ❌ |
+| `UnderwaterBackdrop.tsx` | Water surface + sun shafts + hero spotlight behind content (`z-0`) | ✅ |
 | `EventHeader.tsx` | Title + subtitle | ✅ |
 | `MainPanel.tsx` | Floating rounded panel below hero | ✅ |
 
@@ -103,7 +112,7 @@ are open items if pixel-perfect parity is required.
 | Component | Notes | State |
 |---|---|---|
 | `IconTile.tsx` | Fixed `h-10 w-10` dark tile; icon decorative | ✅ |
-| `StatusIndicator.tsx` | `CheckCircle2` / `Circle`, both 24px | ✅ |
+| `StatusIndicator.tsx` | Filled 24px emerald disc + white `Check`; incomplete 24px `Circle` ring | ✅ |
 | `Tab.tsx` | **Removed** — only consumer was `TabSwitcher`; deleted by design request | ❌ |
 | `ProgressBar.tsx` | Clamped 0–100, `role="progressbar"`, animated fill | ✅ |
 | `MissionText.tsx` | `min-w-0 flex-1` so long text wraps | ✅ |
@@ -195,10 +204,10 @@ are open items if pixel-perfect parity is required.
 
 ## 7. Open items / follow-ups
 
-- **No mockup raster** is checked into the repo, so the "pixel-for-pixel"
-  comparisons requested by several tasks were verified structurally (class
-  tokens + compiled CSS), not by pixel diff. A `<2px` parity check needs the
-  original mockup.
+- **Mockup raster:** `reference.png` is now at the repo root and is the basis
+  for the look & feel, but it has not been committed. The earlier
+  "pixel-for-pixel" comparisons were verified structurally (class tokens +
+  compiled CSS), not by pixel diff.
 - **Mascot removed from the hero** by design request. `mascot-idle.png` is still
   used by the `MissionList` empty state; `mascot-surprised.png` is now unused.
   Re-adding the mascot (or moving it beside the chest) is a small change to

@@ -39,7 +39,7 @@ export default function MissionRow({ mission, onToggle }: MissionRowProps) {
           toggle();
         }
       }}
-      className="flex cursor-pointer items-center justify-between gap-3 p-4 bg-white rounded-2xl shadow-sm focus-visible:ring-2 focus-visible:ring-teal-800 focus-visible:outline-none"
+      className="flex cursor-pointer items-center gap-3.5 rounded-2xl bg-white p-4 shadow-sm transition duration-150 hover:shadow-md active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-teal-800 focus-visible:outline-none"
     >
       <IconTile icon={ICONS[mission.icon]} />
       <MissionText title={mission.title} description={mission.description} />

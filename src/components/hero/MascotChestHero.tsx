@@ -13,12 +13,16 @@ interface MascotChestHeroProps {
   isAllCompleted: boolean;
 }
 
-/** Shake amplitude at intensity 0 (matches `ui-spec.md` §6 baseline). */
+/** Shake amplitude at intensity 0 — kept small so early quests are gentle. */
 const SHAKE_X_MIN_PX = 2;
-const SHAKE_ROT_MIN_DEG = 3;
+const SHAKE_Y_MIN_PX = 0.5;
+const SHAKE_ROT_MIN_DEG = 2;
+const SHAKE_SCALE_MIN = 1;
 /** Shake amplitude at intensity 1 (the strongest escalation). */
-const SHAKE_X_MAX_PX = 8;
-const SHAKE_ROT_MAX_DEG = 12;
+const SHAKE_X_MAX_PX = 12;
+const SHAKE_Y_MAX_PX = 5;
+const SHAKE_ROT_MAX_DEG = 14;
+const SHAKE_SCALE_MAX = 1.04;
 
 /**
  * Chest hero zone.
@@ -28,9 +32,9 @@ const SHAKE_ROT_MAX_DEG = 12;
  * mascot's arms).
  *
  * - **Shake:** the chest picks up `animate-chest-shake` for ~500ms after a
- *   non-final completion. Amplitude is set via the `--chest-shake-x` /
- *   `--chest-shake-rot` CSS variables, interpolated from `shakeIntensity`, so
- *   each subsequent completion wobbles harder.
+ *   non-final completion. Amplitude is set via the `--chest-shake-x/y/rot/scale`
+ *   CSS variables, interpolated from `shakeIntensity`, so each subsequent
+ *   completion wobbles harder and more frantically.
  * - **All complete:** the chest permanently swaps to `chest-open.png` with a
  *   one-shot `animate-pop-in`, fired only on the false → true transition so a
  *   restored all-complete state won't replay it.
@@ -59,7 +63,9 @@ export default function MascotChestHero({
   const lerp = (min: number, max: number) => Math.round((min + (max - min) * intensity) * 100) / 100;
   const shakeStyle = {
     '--chest-shake-x': `${lerp(SHAKE_X_MIN_PX, SHAKE_X_MAX_PX)}px`,
+    '--chest-shake-y': `${lerp(SHAKE_Y_MIN_PX, SHAKE_Y_MAX_PX)}px`,
     '--chest-shake-rot': `${lerp(SHAKE_ROT_MIN_DEG, SHAKE_ROT_MAX_DEG)}deg`,
+    '--chest-shake-scale': `${lerp(SHAKE_SCALE_MIN, SHAKE_SCALE_MAX)}`,
   } as CSSProperties;
 
   return (

@@ -5,6 +5,15 @@ import type { Mission } from '../components/missions/types';
 /** How long the chest/mascot shake sequence runs (ui-spec §6). */
 export const SHAKE_DURATION_MS = 500;
 
+/**
+ * Exponent applied to the completion fraction to ease the shake in. Early
+ * completions land near the bottom of the range and only later ones ramp up to
+ * full strength, so the wobble feels gradual instead of starting at full tilt.
+ * Because the fraction is `completedCount / total`, this shape automatically
+ * adapts to a dynamic quest count: more quests ⇒ smaller steps between shakes.
+ */
+export const SHAKE_INTENSITY_CURVE = 4;
+
 export interface MissionState {
   /** Current mission list (immutably updated). */
   missions: Mission[];
@@ -12,7 +21,8 @@ export interface MissionState {
   isShaking: boolean;
   /**
    * Shake strength for the current shake, in 0–1 — the completion fraction
-   * (`completedCount / total`) at the moment of the shake. Derived from the
+   * (`completedCount / total`) at the moment of the shake, eased in by
+   * `SHAKE_INTENSITY_CURVE` so early completions stay mild. Derived from the
    * mission total, so the escalation adapts to a dynamic mission count.
    */
   shakeIntensity: number;
@@ -36,8 +46,10 @@ export interface MissionState {
  * - updates are immutable.
  *
  * The shake strength escalates with progress: each completion sets
- * `shakeIntensity` to the new completion fraction, so the more missions done
- * (relative to the dynamic total) the stronger the wobble.
+ * `shakeIntensity` to the new completion fraction raised to
+ * `SHAKE_INTENSITY_CURVE`, so the more missions done (relative to the dynamic
+ * total) the stronger the wobble — but the ramp stays gentle for early
+ * completions instead of starting near full strength.
  *
  * The permanent `isAllCompleted` latch never resets, even if a mission is later
  * un-checked (`ui-spec.md` §6).
@@ -71,8 +83,10 @@ export function useMissionState(): MissionState {
         // Final mission: latch permanently and skip the shake path entirely.
         setIsAllCompleted(true);
       } else if (wasCompletion) {
-        // Strength scales with the new completion fraction of the (dynamic) total.
-        setShakeIntensity(next.filter((m) => m.completed).length / next.length);
+        // Strength scales with the new completion fraction of the (dynamic)
+        // total, eased in so early completions are gentle (see the constant).
+        const fraction = next.filter((m) => m.completed).length / next.length;
+        setShakeIntensity(fraction ** SHAKE_INTENSITY_CURVE);
         setIsShaking(true);
         if (shakeTimer.current) clearTimeout(shakeTimer.current);
         shakeTimer.current = setTimeout(() => setIsShaking(false), SHAKE_DURATION_MS);

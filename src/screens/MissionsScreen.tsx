@@ -1,5 +1,5 @@
 import AppShell from '../components/shell/AppShell';
-import BackgroundDecor from '../components/shell/BackgroundDecor';
+import UnderwaterBackdrop from '../components/shell/UnderwaterBackdrop';
 import EventHeader from '../components/shell/EventHeader';
 import MainPanel from '../components/shell/MainPanel';
 import MascotChestHero from '../components/hero/MascotChestHero';
@@ -22,7 +22,7 @@ export default function MissionsScreen() {
 
   return (
     <AppShell>
-      <BackgroundDecor />
+      <UnderwaterBackdrop />
       <EventHeader title="TechFair 2025" subtitle="Aug 28 - 29, 2025 • Main Campus" />
       <MascotChestHero
         isShaking={isShaking}
