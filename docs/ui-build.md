@@ -187,7 +187,7 @@ are open items if pixel-perfect parity is required.
 | `d6d76e4` | complete final visual qa pass and document open items (Phase 5 complete) |
 | `03f1b26` | mount mission tracker screen at / |
 | `c78916a` | enlarge chest and drop mascot from hero |
-| `_pending_` | scale chest shake strength with completion progress |
+| `b6969d4` | scale chest shake strength with completion progress |
 
 ---
 
