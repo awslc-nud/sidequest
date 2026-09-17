@@ -8,19 +8,20 @@ interface MascotChestHeroProps {
 }
 
 /**
- * Mascot + chest hero zone (`ui-spec.md` §2, §3 states).
+ * Chest hero zone.
  *
- * - **Shake:** both mascot states are mounted and cross-faded via opacity rather
- *   than swapping `src`, so the swap is flicker-free. The mascot bounces with a
- *   `translate` and the chest picks up `animate-chest-shake`.
+ * Per design request the mascot has been removed from behind the chest, so the
+ * chest is the sole hero element (`ui-spec.md` §2 originally layered it over the
+ * mascot's arms).
+ *
+ * - **Shake:** the chest picks up `animate-chest-shake` for ~500ms after a
+ *   non-final completion.
  * - **All complete:** the chest permanently swaps to `chest-open.png` with a
- *   one-shot `animate-pop-in`. The pop only fires on the false → true
- *   transition, so a restored all-complete state won't replay it on mount.
+ *   one-shot `animate-pop-in`, fired only on the false → true transition so a
+ *   restored all-complete state won't replay it.
  *
- * Asset notes: the repo ships `chest-locked.png` (ui-spec calls it
- * `chest-closed.png`), and there is **no `mascot-excited.png`** — per the
- * `ui-spec.md` §4.2 asset-gap note the idle asset is reused with a CSS bounce.
- * Flag to design if a dedicated excited asset should be requested.
+ * Asset note: the repo ships `chest-locked.png`; `ui-spec.md` calls it
+ * `chest-closed.png`.
  */
 export default function MascotChestHero({ isShaking, isAllCompleted }: MascotChestHeroProps) {
   const [playPop, setPlayPop] = useState(false);
@@ -35,33 +36,11 @@ export default function MascotChestHero({ isShaking, isAllCompleted }: MascotChe
   const shaking = isShaking && !isAllCompleted;
 
   return (
-    <div className="relative z-10 flex h-40 items-center justify-center">
-      <div
-        className={`relative h-36 w-36 transition-transform duration-200 ease-out ${
-          shaking ? 'translate-y-1' : 'translate-y-0'
-        } ${isAllCompleted ? 'animate-bounce' : ''}`}
-      >
-        <img
-          src="/assets/mascot-idle.png"
-          alt="Mission tracker mascot"
-          aria-hidden={shaking}
-          className={`absolute inset-0 h-36 w-36 object-contain transition-opacity duration-150 ${
-            shaking ? 'opacity-0' : 'opacity-100'
-          }`}
-        />
-        <img
-          src="/assets/mascot-surprised.png"
-          alt="Mission tracker mascot"
-          aria-hidden={!shaking}
-          className={`absolute inset-0 h-36 w-36 object-contain transition-opacity duration-150 ${
-            shaking ? 'opacity-100' : 'opacity-0'
-          }`}
-        />
-      </div>
+    <div className="relative z-10 flex h-48 items-center justify-center">
       <img
         src={isAllCompleted ? '/assets/chest-open.png' : '/assets/chest-locked.png'}
         alt={isAllCompleted ? 'Opened reward chest' : 'Reward chest'}
-        className={`absolute h-[90px] w-[110px] translate-y-4 object-contain ${
+        className={`h-32 w-52 object-contain ${
           isAllCompleted ? (playPop ? 'animate-pop-in' : '') : shaking ? 'animate-chest-shake' : ''
         }`}
       />

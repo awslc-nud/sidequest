@@ -72,6 +72,7 @@ reach for `tokens.ts` only where a class can't express the value.
 | 12 | Hook `progressPercent` | Exposed but unused by the screen | `ProgressTracker` derives its own percent from completed/total |
 | 13 | Responsive cap location | Non-positioned `mx-auto max-w-md` wrapper inside `AppShell` | Keeps content card-width on desktop while `BackgroundDecor`'s `absolute inset-0` still resolves against the positioned root and spans the viewport |
 | 14 | Keyboard semantics | `role="checkbox"` + Enter/Space on rows | Follows task 62; rows are `tabIndex=0` with `focus-visible` ring |
+| 15 | Hero layout | Mascot removed; chest-only, hero `h-48`, chest `h-32 w-52` | Design request (post-roadmap). Differs from `ui-spec.md` §2 (chest in mascot's arms) |
 
 `ui-spec.md` has no typography section and no mockup raster is checked in — both
 are open items if pixel-perfect parity is required.
@@ -93,7 +94,7 @@ are open items if pixel-perfect parity is required.
 
 | Component | Purpose | State |
 |---|---|---|
-| `MascotChestHero.tsx` | Mascot + chest; shake cross-fade, permanent open/excited | ✅ |
+| `MascotChestHero.tsx` | Chest-only hero (mascot removed by design request); shake + one-shot open | ✅ |
 
 ### Primitives (`src/components/primitives/`)
 
@@ -184,6 +185,7 @@ are open items if pixel-perfect parity is required.
 | `9028eaf` | add touch and keyboard accessibility to tabs and mission rows |
 | `d6d76e4` | complete final visual qa pass and document open items (Phase 5 complete) |
 | `03f1b26` | mount mission tracker screen at / |
+| `_pending_` | enlarge chest and drop mascot from hero |
 
 ---
 
@@ -193,9 +195,10 @@ are open items if pixel-perfect parity is required.
   comparisons requested by several tasks were verified structurally (class
   tokens + compiled CSS), not by pixel diff. A `<2px` parity check needs the
   original mockup.
-- **`mascot-excited.png` is missing** — the all-complete mascot reuses
-  `mascot-idle.png` with `animate-bounce`. Request the asset from design if a
-  distinct excited pose is wanted.
+- **Mascot removed from the hero** by design request. `mascot-idle.png` is still
+  used by the `MissionList` empty state; `mascot-surprised.png` is now unused.
+  Re-adding the mascot (or moving it beside the chest) is a small change to
+  `MascotChestHero.tsx`.
 - **`chest-closed.png` naming** — the repo ships `chest-locked.png`; the code
   uses the existing filename.
 - `GET /api/config` is not wired to the header/missions (hardcoded to the
