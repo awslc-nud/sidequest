@@ -185,7 +185,7 @@ are open items if pixel-perfect parity is required.
 | `9028eaf` | add touch and keyboard accessibility to tabs and mission rows |
 | `d6d76e4` | complete final visual qa pass and document open items (Phase 5 complete) |
 | `03f1b26` | mount mission tracker screen at / |
-| `_pending_` | enlarge chest and drop mascot from hero |
+| `c78916a` | enlarge chest and drop mascot from hero |
 
 ---
 
