@@ -189,7 +189,7 @@ are open items if pixel-perfect parity is required.
 | `03f1b26` | mount mission tracker screen at / |
 | `c78916a` | enlarge chest and drop mascot from hero |
 | `b6969d4` | scale chest shake strength with completion progress |
-| `_pending_` | remove mission and event info tabs |
+| `7c25b39` | remove mission and event info tabs |
 
 ---
 
