@@ -74,6 +74,7 @@ reach for `tokens.ts` only where a class can't express the value.
 | 14 | Keyboard semantics | `role="checkbox"` + Enter/Space on rows | Follows task 62; rows are `tabIndex=0` with `focus-visible` ring |
 | 15 | Hero layout | Mascot removed; chest-only, hero `h-48`, chest `h-32 w-52` | Design request (post-roadmap). Differs from `ui-spec.md` §2 (chest in mascot's arms) |
 | 16 | Shake strength | Escalates with `completedCount / total`; keyframe reads `--chest-shake-x/-rot` (2→8px, 3→12°) set inline | "Every mission done shakes harder", normalized to the dynamic mission total |
+| 17 | Tab navigation removed | Deleted `TabSwitcher.tsx` + `Tab.tsx`; `MissionList` renders directly | Design request (post-roadmap). Differs from `ui-spec.md` §2/§3 tabs |
 
 `ui-spec.md` has no typography section and no mockup raster is checked in — both
 are open items if pixel-perfect parity is required.
@@ -103,7 +104,7 @@ are open items if pixel-perfect parity is required.
 |---|---|---|
 | `IconTile.tsx` | Fixed `h-10 w-10` dark tile; icon decorative | ✅ |
 | `StatusIndicator.tsx` | `CheckCircle2` / `Circle`, both 24px | ✅ |
-| `Tab.tsx` | Pill button; `focus-visible` ring; `aria-pressed` deferred to Phase 5 | ✅ |
+| `Tab.tsx` | **Removed** — only consumer was `TabSwitcher`; deleted by design request | ❌ |
 | `ProgressBar.tsx` | Clamped 0–100, `role="progressbar"`, animated fill | ✅ |
 | `MissionText.tsx` | `min-w-0 flex-1` so long text wraps | ✅ |
 
@@ -120,7 +121,7 @@ are open items if pixel-perfect parity is required.
 | `types.ts` | `Mission` / `MissionIcon` UI types (ui-spec §5) | ✅ |
 | `seed.ts` | The 5 mockup missions (2/5 complete) | ✅ |
 | `ProgressTracker.tsx` | Label + `ProgressBar`; derives percent | ✅ |
-| `TabSwitcher.tsx` | Owns `activeTab`, swaps Missions/Event Info panels | ✅ |
+| `TabSwitcher.tsx` | **Removed** — Missions/Event Info tabs deleted by design request | ❌ |
 | `MissionRow.tsx` | Tappable card; `role="checkbox"`/`aria-checked`, keyboard operable | ✅ |
 | `MissionList.tsx` | `<ul>` of rows; empty state + `isLoading` skeletons | ✅ |
 | `MissionRowSkeleton.tsx` | `animate-pulse` placeholder matching row footprint | ✅ |
@@ -188,6 +189,7 @@ are open items if pixel-perfect parity is required.
 | `03f1b26` | mount mission tracker screen at / |
 | `c78916a` | enlarge chest and drop mascot from hero |
 | `b6969d4` | scale chest shake strength with completion progress |
+| `_pending_` | remove mission and event info tabs |
 
 ---
 

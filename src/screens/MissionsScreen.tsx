@@ -4,7 +4,6 @@ import EventHeader from '../components/shell/EventHeader';
 import MainPanel from '../components/shell/MainPanel';
 import MascotChestHero from '../components/hero/MascotChestHero';
 import ProgressTracker from '../components/missions/ProgressTracker';
-import TabSwitcher from '../components/missions/TabSwitcher';
 import MissionList from '../components/missions/MissionList';
 import { useMissionState } from '../hooks/useMissionState';
 
@@ -32,9 +31,7 @@ export default function MissionsScreen() {
       />
       <MainPanel>
         <ProgressTracker completed={completedCount} total={missions.length} />
-        <TabSwitcher>
-          <MissionList missions={missions} onToggle={toggleMission} />
-        </TabSwitcher>
+        <MissionList missions={missions} onToggle={toggleMission} />
       </MainPanel>
     </AppShell>
   );
