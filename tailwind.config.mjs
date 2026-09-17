@@ -28,14 +28,21 @@ export default {
       },
       /**
        * Rapid vibration applied to the closed chest for 500ms when a non-final
-       * mission is completed (`ui-spec.md` §6). Mirrors the spec's keyframe:
-       * ±2px translate / ±3° rotate on alternating quarter-frames.
+       * mission is completed (`ui-spec.md` §6). Mirrors the spec's keyframe
+       * baseline (±2px translate / ±3° rotate), but the amplitude is driven by
+       * `--chest-shake-x` / `--chest-shake-rot` so it can scale with progress
+       * (the vars fall back to the spec values when unset).
        */
       keyframes: {
         'chest-shake': {
           '0%, 100%': { transform: 'translateX(0) rotate(0)' },
-          '25%': { transform: 'translateX(-2px) rotate(-3deg)' },
-          '75%': { transform: 'translateX(2px) rotate(3deg)' },
+          '25%': {
+            transform:
+              'translateX(calc(-1 * var(--chest-shake-x, 2px))) rotate(calc(-1 * var(--chest-shake-rot, 3deg)))',
+          },
+          '75%': {
+            transform: 'translateX(var(--chest-shake-x, 2px)) rotate(var(--chest-shake-rot, 3deg))',
+          },
         },
         /**
          * Overshoot-then-settle scale for the permanent chest-open swap when all

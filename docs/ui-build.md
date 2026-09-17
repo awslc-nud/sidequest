@@ -73,6 +73,7 @@ reach for `tokens.ts` only where a class can't express the value.
 | 13 | Responsive cap location | Non-positioned `mx-auto max-w-md` wrapper inside `AppShell` | Keeps content card-width on desktop while `BackgroundDecor`'s `absolute inset-0` still resolves against the positioned root and spans the viewport |
 | 14 | Keyboard semantics | `role="checkbox"` + Enter/Space on rows | Follows task 62; rows are `tabIndex=0` with `focus-visible` ring |
 | 15 | Hero layout | Mascot removed; chest-only, hero `h-48`, chest `h-32 w-52` | Design request (post-roadmap). Differs from `ui-spec.md` §2 (chest in mascot's arms) |
+| 16 | Shake strength | Escalates with `completedCount / total`; keyframe reads `--chest-shake-x/-rot` (2→8px, 3→12°) set inline | "Every mission done shakes harder", normalized to the dynamic mission total |
 
 `ui-spec.md` has no typography section and no mockup raster is checked in — both
 are open items if pixel-perfect parity is required.
@@ -186,6 +187,7 @@ are open items if pixel-perfect parity is required.
 | `d6d76e4` | complete final visual qa pass and document open items (Phase 5 complete) |
 | `03f1b26` | mount mission tracker screen at / |
 | `c78916a` | enlarge chest and drop mascot from hero |
+| `_pending_` | scale chest shake strength with completion progress |
 
 ---
 

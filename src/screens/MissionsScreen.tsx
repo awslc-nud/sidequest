@@ -18,13 +18,18 @@ import { useMissionState } from '../hooks/useMissionState';
  * becomes config-driven this should read from `GET /api/config` instead.
  */
 export default function MissionsScreen() {
-  const { missions, isShaking, isAllCompleted, completedCount, toggleMission } = useMissionState();
+  const { missions, isShaking, shakeIntensity, isAllCompleted, completedCount, toggleMission } =
+    useMissionState();
 
   return (
     <AppShell>
       <BackgroundDecor />
       <EventHeader title="TechFair 2025" subtitle="Aug 28 - 29, 2025 • Main Campus" />
-      <MascotChestHero isShaking={isShaking} isAllCompleted={isAllCompleted} />
+      <MascotChestHero
+        isShaking={isShaking}
+        shakeIntensity={shakeIntensity}
+        isAllCompleted={isAllCompleted}
+      />
       <MainPanel>
         <ProgressTracker completed={completedCount} total={missions.length} />
         <TabSwitcher>

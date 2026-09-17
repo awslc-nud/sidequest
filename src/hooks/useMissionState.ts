@@ -10,6 +10,12 @@ export interface MissionState {
   missions: Mission[];
   /** True for `SHAKE_DURATION_MS` after a non-final mission is completed. */
   isShaking: boolean;
+  /**
+   * Shake strength for the current shake, in 0–1 — the completion fraction
+   * (`completedCount / total`) at the moment of the shake. Derived from the
+   * mission total, so the escalation adapts to a dynamic mission count.
+   */
+  shakeIntensity: number;
   /** Latched true once every mission is complete (never resets — ui-spec §6). */
   isAllCompleted: boolean;
   /** Number of completed missions. */
@@ -29,12 +35,17 @@ export interface MissionState {
  * - un-checking never shakes;
  * - updates are immutable.
  *
+ * The shake strength escalates with progress: each completion sets
+ * `shakeIntensity` to the new completion fraction, so the more missions done
+ * (relative to the dynamic total) the stronger the wobble.
+ *
  * The permanent `isAllCompleted` latch never resets, even if a mission is later
  * un-checked (`ui-spec.md` §6).
  */
 export function useMissionState(): MissionState {
   const [missions, setMissions] = useState<Mission[]>(() => SEED_MISSIONS.map((m) => ({ ...m })));
   const [isShaking, setIsShaking] = useState(false);
+  const [shakeIntensity, setShakeIntensity] = useState(0);
   // Latched (one-way) flag: set true when the list first becomes fully complete.
   const [isAllCompleted, setIsAllCompleted] = useState<boolean>(
     () => SEED_MISSIONS.length > 0 && SEED_MISSIONS.every((m) => m.completed),
@@ -60,7 +71,8 @@ export function useMissionState(): MissionState {
         // Final mission: latch permanently and skip the shake path entirely.
         setIsAllCompleted(true);
       } else if (wasCompletion) {
-        // A single, non-final completion triggers the brief shake.
+        // Strength scales with the new completion fraction of the (dynamic) total.
+        setShakeIntensity(next.filter((m) => m.completed).length / next.length);
         setIsShaking(true);
         if (shakeTimer.current) clearTimeout(shakeTimer.current);
         shakeTimer.current = setTimeout(() => setIsShaking(false), SHAKE_DURATION_MS);
@@ -77,5 +89,13 @@ export function useMissionState(): MissionState {
     [],
   );
 
-  return { missions, isShaking, isAllCompleted, completedCount, progressPercent, toggleMission };
+  return {
+    missions,
+    isShaking,
+    shakeIntensity,
+    isAllCompleted,
+    completedCount,
+    progressPercent,
+    toggleMission,
+  };
 }
