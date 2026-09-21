@@ -1,0 +1,57 @@
+import { useEffect, useRef } from 'react';
+import { X } from 'lucide-react';
+import type { PublicConfig } from '../../client/types';
+import FeedbackForm from './FeedbackForm';
+
+interface Props {
+  cfg: PublicConfig;
+  sessionId: string;
+  /** Called after a successful submission (close + refresh). */
+  onSubmitted: () => void;
+  /** Dismiss without submitting; the attendee can reopen from the claim area. */
+  onClose: () => void;
+}
+
+/**
+ * Modal wrapper around the shared `FeedbackForm`.
+ *
+ * Pops automatically once every quest is complete (§ product decision — see
+ * `docs/ui-build.md` #29). Dismissible so the attendee can claim later; the
+ * standalone `/survey` page renders the same form outside the modal.
+ */
+export default function FeedbackModal({ cfg, sessionId, onSubmitted, onClose }: Props) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Post-event survey"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-brand-ink/40 p-4 sm:items-center"
+    >
+      <div className="w-full max-w-md">
+        <div className="relative">
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={onClose}
+            aria-label="Close survey"
+            className="absolute right-3 top-3 z-10 rounded-full p-1.5 text-brand-muted transition hover:bg-brand-bg hover:text-brand-ink"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <FeedbackForm cfg={cfg} sessionId={sessionId} onSubmitted={onSubmitted} />
+        </div>
+      </div>
+    </div>
+  );
+}

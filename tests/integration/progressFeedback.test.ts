@@ -77,7 +77,7 @@ describe('progress + feedback (§3.4/§3.5/AC-03)', () => {
     }
   });
 
-  it('feedback gate: PROMPTS_INCOMPLETE before prompts done; unlocks on final feedback', async () => {
+  it('survey is a separate step: PROMPTS_INCOMPLETE before quests, excluded from N, chest already unlocked', async () => {
     const { client, sessionId } = await ApiClient.newSession(server.baseUrl);
 
     const early = await client.postJson('/api/feedback', {
@@ -87,12 +87,13 @@ describe('progress + feedback (§3.4/§3.5/AC-03)', () => {
     expect(early.status).toBe(400);
     expect((await early.json()).error.code).toBe('PROMPTS_INCOMPLETE');
 
-    // complete the 3 photo quests (4th task = feedback keystone)
+    // complete the 3 photo quests — the chest unlocks on the final upload
     await uploadAll(client, sessionId);
     const before = await (await client.get(`/api/progress/${sessionId}`)).json();
     expect(before.completed).toBe(3);
-    expect(before.total).toBe(4);
-    expect(before.chest_unlocked).toBe(false);
+    expect(before.total).toBe(3); // survey excluded from N
+    expect(before.chest_unlocked).toBe(true);
+    expect(before.feedback_done).toBe(false);
 
     const fb = await client.postJson('/api/feedback', {
       session_id: sessionId,
@@ -100,8 +101,15 @@ describe('progress + feedback (§3.4/§3.5/AC-03)', () => {
     });
     const fbBody = await fb.json();
     expect(fb.status).toBe(200);
-    expect(fbBody.progress.completed).toBe(4);
-    expect(fbBody.chest_unlocked).toBe(true);
+    expect(fbBody.progress.completed).toBe(3);
+    expect(fbBody.progress.total).toBe(3);
+    expect(fbBody.feedback_done).toBe(true);
+
+    // the survey does not change the progress ledger
+    const after = await (await client.get(`/api/progress/${sessionId}`)).json();
+    expect(after.completed).toBe(3);
+    expect(after.total).toBe(3);
+    expect(after.feedback_done).toBe(true);
 
     // duplicate feedback is rejected
     const dup = await client.postJson('/api/feedback', { session_id: sessionId, answers: { q1: 1, q2: 'x' } });

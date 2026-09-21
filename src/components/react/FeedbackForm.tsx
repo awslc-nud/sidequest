@@ -36,10 +36,10 @@ export default function FeedbackForm({ cfg, sessionId, onSubmitted }: Props) {
   };
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-      <h2 className="text-sm font-medium uppercase tracking-widest text-zinc-500">One last thing…</h2>
+    <div className="flex flex-col gap-3 rounded-2xl border border-brand-track bg-brand-white p-4 shadow-sm">
+      <h2 className="text-xs font-medium uppercase tracking-widest text-brand-muted">One last thing…</h2>
       {questions.map((q) => (
-        <label key={q.id} className="flex flex-col gap-1.5 text-sm text-zinc-200">
+        <label key={q.id} className="flex flex-col gap-1.5 text-sm text-brand-ink">
           {q.label}
           {q.type === 'rating_1_5' && (
             <div className="flex gap-2">
@@ -51,8 +51,8 @@ export default function FeedbackForm({ cfg, sessionId, onSubmitted }: Props) {
                   aria-pressed={answers[q.id] === n}
                   className={
                     answers[q.id] === n
-                      ? 'h-9 w-9 rounded-lg bg-zinc-100 font-medium text-zinc-900'
-                      : 'h-9 w-9 rounded-lg border border-zinc-700 text-zinc-300 hover:bg-zinc-800'
+                      ? 'h-9 w-9 rounded-lg bg-brand-deep font-medium text-brand-white'
+                      : 'h-9 w-9 rounded-lg border border-brand-track text-brand-muted transition hover:bg-brand-bg'
                   }
                 >
                   {n}
@@ -70,8 +70,8 @@ export default function FeedbackForm({ cfg, sessionId, onSubmitted }: Props) {
                   aria-pressed={answers[q.id] === (b === 'Yes')}
                   className={
                     answers[q.id] === (b === 'Yes')
-                      ? 'rounded-lg bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-900'
-                      : 'rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 hover:bg-zinc-800'
+                      ? 'rounded-lg bg-brand-deep px-3 py-1.5 text-sm font-medium text-brand-white'
+                      : 'rounded-lg border border-brand-track px-3 py-1.5 text-sm text-brand-muted transition hover:bg-brand-bg'
                   }
                 >
                   {b}
@@ -84,17 +84,17 @@ export default function FeedbackForm({ cfg, sessionId, onSubmitted }: Props) {
               value={(answers[q.id] as string) ?? ''}
               onChange={(e) => set(q.id, e.target.value)}
               rows={2}
-              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+              className="rounded-lg border border-brand-track bg-brand-white px-3 py-2 text-sm text-brand-ink placeholder:text-brand-muted focus:border-brand-accent focus:outline-none"
             />
           )}
         </label>
       ))}
-      {error && <p className="rounded-lg border border-red-900/60 bg-red-950/40 px-3 py-2 text-sm text-red-300">{error}</p>}
+      {error && <p className="rounded-lg border border-brand-orange/50 bg-brand-orange-soft px-3 py-2 text-sm text-brand-ink">{error}</p>}
       <button
         type="button"
         onClick={submit}
         disabled={busy}
-        className="flex items-center justify-center gap-1.5 rounded-lg bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-900 hover:bg-white disabled:opacity-60"
+        className="flex items-center justify-center gap-1.5 rounded-full bg-brand-deep px-4 py-2.5 text-sm font-semibold text-brand-white transition hover:bg-brand-deep/90 disabled:opacity-60"
       >
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Submit feedback
       </button>

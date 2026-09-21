@@ -1,23 +1,30 @@
 import { useEffect, useState } from 'react';
-import { BadgeCheck, Loader2, Ticket } from 'lucide-react';
+import { BadgeCheck, ClipboardList, Loader2, Ticket } from 'lucide-react';
 import QRCode from 'qrcode';
 import type { ClaimResponse, PublicConfig, ProgressResponse } from '../../client/types';
 import { postJson } from '../../client/http';
 import { canShowClaimModal } from '../../client/claimGate';
-import FeedbackForm from './FeedbackForm';
 
 interface Props {
   cfg: PublicConfig;
   progress: ProgressResponse;
   sessionId: string;
   localPending: number;
+  /** True when the survey is enabled, quests are done, and it isn't submitted. */
+  surveyPending: boolean;
+  /** Open the survey modal (attendee chose "later" earlier, or wants to redo). */
+  onOpenSurvey: () => void;
   onRefresh: () => void;
 }
 
-export default function ClaimFlow({ cfg, progress, sessionId, localPending, onRefresh }: Props) {
-  const allQuestsDone = progress.completed_prompt_ids.length === cfg.quests.length;
-  const showFeedback = cfg.feedback_keystone.enabled && allQuestsDone && !progress.feedback_done;
-  const claimReady = canShowClaimModal({ pendingCount: localPending, serverCompleted: progress.completed, serverTotal: progress.total });
+export default function ClaimFlow({ cfg, progress, sessionId, localPending, surveyPending, onOpenSurvey, onRefresh }: Props) {
+  const claimReady = canShowClaimModal({
+    pendingCount: localPending,
+    serverCompleted: progress.completed,
+    serverTotal: progress.total,
+    feedbackRequired: cfg.feedback_keystone.enabled,
+    feedbackDone: progress.feedback_done,
+  });
   const alreadyMinted = progress.claim !== null;
 
   const [open, setOpen] = useState(false);
@@ -44,59 +51,72 @@ export default function ClaimFlow({ cfg, progress, sessionId, localPending, onRe
 
   return (
     <div className="flex flex-col gap-3">
-      {showFeedback && <FeedbackForm cfg={cfg} sessionId={sessionId} onSubmitted={onRefresh} />}
-
       {claim ? (
         <ClaimPass claim={claim} domain={cfg.allowed_email_domain} />
       ) : alreadyMinted ? (
         <MintedSummary progress={progress} />
       ) : (
-        <button
-          type="button"
-          disabled={!claimReady}
-          onClick={() => setOpen(true)}
-          className={
-            claimReady
-              ? 'flex items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-3 text-sm font-semibold text-zinc-900 hover:bg-amber-300'
-              : 'flex items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 px-4 py-3 text-sm text-zinc-500'
-          }
-        >
-          {!claimReady && localPending > 0 ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" /> Syncing {localPending} photo{localPending === 1 ? '' : 's'}…
-            </>
-          ) : !progress.chest_unlocked ? (
-            <>
-              <Ticket className="h-4 w-4" /> Complete all tasks to claim your pass
-            </>
-          ) : (
-            <>
-              <Ticket className="h-4 w-4" /> Claim your pass
-            </>
+        <>
+          {surveyPending && (
+            <button
+              type="button"
+              onClick={onOpenSurvey}
+              className="flex items-center justify-center gap-2 rounded-full bg-brand-accent px-4 py-3 text-sm font-semibold text-brand-ink transition hover:bg-brand-accent/90"
+            >
+              <ClipboardList className="h-4 w-4" /> Take the survey
+            </button>
           )}
-        </button>
+          <button
+            type="button"
+            disabled={!claimReady}
+            onClick={() => setOpen(true)}
+            className={
+              claimReady
+                ? 'flex items-center justify-center gap-2 rounded-full bg-brand-deep px-4 py-3 text-sm font-semibold text-brand-white transition hover:bg-brand-deep/90'
+                : 'flex items-center justify-center gap-2 rounded-full border border-dashed border-brand-track px-4 py-3 text-sm text-brand-muted'
+            }
+          >
+            {!claimReady && localPending > 0 ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Syncing {localPending} photo{localPending === 1 ? '' : 's'}…
+              </>
+            ) : surveyPending ? (
+              <>
+                <ClipboardList className="h-4 w-4" /> Finish the survey to claim your pass
+              </>
+            ) : !progress.chest_unlocked ? (
+              <>
+                <Ticket className="h-4 w-4" /> Complete all quests to claim your pass
+              </>
+            ) : (
+              <>
+                <Ticket className="h-4 w-4" /> Claim your pass
+              </>
+            )}
+          </button>
+        </>
       )}
 
       {open && !claim && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 sm:items-center">
-          <div className="flex w-full max-w-md flex-col gap-4 rounded-t-2xl border border-zinc-800 bg-zinc-950 p-6 sm:rounded-2xl">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-brand-ink/40 sm:items-center">
+          <div className="flex w-full max-w-md flex-col gap-4 rounded-t-3xl border border-brand-track bg-brand-white p-6 text-brand-ink shadow-xl sm:rounded-3xl">
             <h2 className="text-lg font-semibold">Claim your swag pass</h2>
-            <p className="text-sm text-zinc-400">
-              Use your school email ending in <span className="text-zinc-200">@{cfg.allowed_email_domain}</span>. You'll show the
-              marshal at the exit table to collect your loot.
+            <p className="text-sm text-brand-muted">
+              Use your school email ending in <span className="text-brand-ink">@{cfg.allowed_email_domain}</span>. You'll show
+              the marshal at the exit table to collect your loot.
             </p>
             <label className="flex flex-col gap-1.5 text-sm">
-              <span className="text-zinc-300">School email</span>
+              <span className="text-brand-muted">School email</span>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={`you@${cfg.allowed_email_domain}`}
                 autoFocus
-                className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-zinc-100 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+                className="rounded-lg border border-brand-track bg-brand-white px-3 py-2 text-brand-ink placeholder:text-brand-muted focus:border-brand-accent focus:outline-none"
               />
             </label>
-            {error && <p className="rounded-lg border border-red-900/60 bg-red-950/40 px-3 py-2 text-sm text-red-300">{error}</p>}
+            {error && <p className="rounded-lg border border-brand-orange/50 bg-brand-orange-soft px-3 py-2 text-sm text-brand-ink">{error}</p>}
             <div className="flex gap-3">
               <button
                 type="button"
@@ -104,7 +124,7 @@ export default function ClaimFlow({ cfg, progress, sessionId, localPending, onRe
                   setOpen(false);
                   setError(null);
                 }}
-                className="flex-1 rounded-lg border border-zinc-700 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-900"
+                className="flex-1 rounded-full border border-brand-track px-4 py-2.5 text-sm font-medium text-brand-muted transition hover:bg-brand-bg"
               >
                 Cancel
               </button>
@@ -112,7 +132,7 @@ export default function ClaimFlow({ cfg, progress, sessionId, localPending, onRe
                 type="button"
                 onClick={submit}
                 disabled={busy || !email.includes('@')}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-semibold text-zinc-900 hover:bg-amber-300 disabled:opacity-60"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-brand-deep px-4 py-2.5 text-sm font-semibold text-brand-white transition hover:bg-brand-deep/90 disabled:opacity-60"
               >
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <BadgeCheck className="h-4 w-4" />} Mint pass
               </button>
@@ -147,19 +167,19 @@ function PassCard({
   }, [claimToken]);
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-amber-500/30 bg-zinc-900/80 p-6">
-      <h2 className="text-base font-semibold">{headline}</h2>
-      <p className="text-center text-xs text-zinc-400">{hint}</p>
+    <div className="flex flex-col items-center gap-3 rounded-3xl border border-brand-accent/40 bg-brand-white p-6 shadow-sm">
+      <h2 className="text-base font-semibold text-brand-ink">{headline}</h2>
+      <p className="text-center text-xs text-brand-muted">{hint}</p>
       {qr ? (
-        <img src={qr} alt="Claim pass QR code" className="h-52 w-52 rounded-lg bg-white p-2" />
+        <img src={qr} alt="Claim pass QR code" className="h-52 w-52 rounded-xl bg-brand-white p-2" />
       ) : (
-        <div className="flex h-52 w-52 items-center justify-center rounded-lg bg-zinc-800 text-zinc-500">QR</div>
+        <div className="flex h-52 w-52 items-center justify-center rounded-xl bg-brand-bg text-brand-muted">QR</div>
       )}
-      <p className="text-3xl font-bold tracking-[0.4em] text-zinc-100" aria-label={`Fallback code ${shortCode}`}>
+      <p className="text-3xl font-bold tracking-[0.4em] text-brand-ink" aria-label={`Fallback code ${shortCode}`}>
         {shortCode}
       </p>
-      {footer && <p className="text-sm text-zinc-400">{footer}</p>}
-      {note && <p className="text-center text-xs text-zinc-500">{note}</p>}
+      {footer && <p className="text-sm text-brand-muted">{footer}</p>}
+      {note && <p className="text-center text-xs text-brand-muted">{note}</p>}
     </div>
   );
 }

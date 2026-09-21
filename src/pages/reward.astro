@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AppShell from '../components/shell/AppShell';
+import UnderwaterBackdrop from '../components/shell/UnderwaterBackdrop';
+import { getEventConfig } from '../lib/config/loadEventConfig';
+import RewardPage from '../components/react/RewardPage';
+
+const cfg = getEventConfig();
+---
+
+<BaseLayout
+  title={`${cfg.event_name} — Reward`}
+  description="Your unlocked reward and claim pass"
+  bodyClass="bg-brand-bg text-brand-ink antialiased"
+>
+  <AppShell>
+    <UnderwaterBackdrop />
+    <RewardPage loot={cfg.loot} client:load />
+  </AppShell>
+</BaseLayout>

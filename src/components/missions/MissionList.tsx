@@ -7,8 +7,12 @@ const SKELETON_ROWS = 5;
 
 interface MissionListProps {
   missions: Mission[];
-  /** Called with the mission id when a row is toggled. */
-  onToggle: (id: string) => void;
+  /** Called to open capture for a `todo` mission. */
+  onStart: (mission: Mission) => void;
+  /** Called to retry a `failed` mission's upload. */
+  onRetry: (id: string) => void;
+  /** Failure messages keyed by mission id (for `failed` rows). */
+  failures?: Record<string, string>;
   /** When true, render skeleton placeholders instead of rows. */
   isLoading?: boolean;
 }
@@ -19,7 +23,7 @@ interface MissionListProps {
  * Shows skeletons while loading, a centered empty state when there are no
  * missions, and the real rows otherwise.
  */
-export default function MissionList({ missions, onToggle, isLoading = false }: MissionListProps) {
+export default function MissionList({ missions, onStart, onRetry, failures, isLoading = false }: MissionListProps) {
   if (isLoading) {
     return (
       <ul className="flex flex-col space-y-3">
@@ -39,15 +43,22 @@ export default function MissionList({ missions, onToggle, isLoading = false }: M
           aria-hidden="true"
           className="h-24 w-24 object-contain opacity-40"
         />
-        <p className="text-sm text-slate-400">No missions yet</p>
+        <p className="text-sm text-brand-muted">No missions yet</p>
       </div>
     );
   }
 
   return (
     <ul className="flex flex-col space-y-3">
-      {missions.map((mission) => (
-        <MissionRow key={mission.id} mission={mission} onToggle={onToggle} />
+      {missions.map((mission, index) => (
+        <MissionRow
+          key={mission.id}
+          mission={mission}
+          index={index}
+          failureMessage={failures?.[mission.id]}
+          onStart={() => onStart(mission)}
+          onRetry={() => onRetry(mission.id)}
+        />
       ))}
     </ul>
   );

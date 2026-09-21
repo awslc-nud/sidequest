@@ -40,6 +40,22 @@ describe('POST /api/claim (§3.6/§4.5)', () => {
     expect((await res.json()).error.code).toBe('CHEST_NOT_UNLOCKED');
   });
 
+  it('rejects a claim once quests are done but the survey is outstanding', async () => {
+    const { client, sessionId } = await ApiClient.newSession(server.baseUrl);
+    for (const prompt of PROMPTS) {
+      const res = await client.postForm('/api/upload', {
+        session_id: sessionId,
+        prompt_id: prompt,
+        client_capture_id: randomUUID(),
+        file: webpBlob(2048),
+      });
+      expect([200, 201]).toContain(res.status);
+    }
+    const res = await client.postJson('/api/claim', { session_id: sessionId, student_email: 'a@school.edu.ph' });
+    expect(res.status).toBe(400);
+    expect((await res.json()).error.code).toBe('FEEDBACK_REQUIRED');
+  });
+
   it('mints a pass with a normalized email and echoes loot', async () => {
     const { client, sessionId } = await unlock();
     const res = await client.postJson('/api/claim', {

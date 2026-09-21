@@ -13,6 +13,8 @@ export const GET: APIRoute = () => {
     return json({
       event_name: cfg.event_name,
       event_slug: cfg.event_slug,
+      event_date: cfg.event_date ?? null,
+      event_venue: cfg.event_venue ?? null,
       allowed_email_domain: cfg.allowed_email_domain,
       quests: cfg.quests.map((q) => ({ id: q.id, title: q.title, description: q.description })),
       feedback_keystone: {

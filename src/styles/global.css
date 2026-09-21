@@ -5,9 +5,9 @@
 @config "../../tailwind.config.mjs";
 
 /* ─────────────────────────────────────────────────────────────
-   Structural baseline (dark neutral slate/zinc).
-   Design tokens / theme will land here once ui-spec arrives;
-   components are styled with utility classes only for now.
+   Structural baseline for the light mission-tracker palette
+   (ui-spec.md §1.2 `brand-*` tokens). Marshal/admin surfaces are
+   dark, so `color-scheme` is left per-page (see BaseLayout).
    ───────────────────────────────────────────────────────────── */
 
 /* Chest FX keyframes (placeholders — easing/timing to be confirmed
@@ -33,7 +33,9 @@
 }
 
 html {
-  color-scheme: dark;
+  /* Mission tracker is light-dominant (pale-mint `brand-bg`); the dark
+     marshal/admin pages re-declare `dark` via their body class. */
+  color-scheme: light;
 }
 
 /* Base typeface.

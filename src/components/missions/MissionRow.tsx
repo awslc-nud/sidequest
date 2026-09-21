@@ -12,38 +12,51 @@ const ICONS: Record<Mission['icon'], LucideIcon> = {
 
 interface MissionRowProps {
   mission: Mission;
-  /** Called with the mission id when the row is tapped. */
-  onToggle: (id: string) => void;
+  index: number;
+  /** Server/worker failure message for a `failed` row. */
+  failureMessage?: string;
+  /** Called to open the capture flow (row `todo`). */
+  onStart: () => void;
+  /** Called to re-queue a terminally-failed upload (row `failed`). */
+  onRetry: () => void;
 }
 
 /**
- * Tappable mission card (`ui-spec.md` §3).
+ * Tappable mission card (`ui-spec.md` §3), now server-driven.
  *
- * The click handler is on the `<li>` itself so the whole card is the hit area,
- * not just the status icon. It exposes `role="checkbox"` + `aria-checked` for
- * assistive tech and is keyboard-operable via Enter/Space (44px+ target by
- * construction: `p-4` around a 44px content row).
+ * The whole card is a `<button>`: tapping a `todo` row opens capture, a `failed`
+ * row retries, and `done`/`pending_sync` rows are disabled. 44px+ target by
+ * construction (`p-4` around a 40px content row).
  */
-export default function MissionRow({ mission, onToggle }: MissionRowProps) {
-  const toggle = () => onToggle(mission.id);
+export default function MissionRow({ mission, index, failureMessage, onStart, onRetry }: MissionRowProps) {
+  const actionable = mission.status === 'todo' || mission.status === 'failed';
+  const onClick = mission.status === 'failed' ? onRetry : onStart;
+
+  const hint =
+    mission.status === 'pending_sync'
+      ? 'Uploading…'
+      : mission.status === 'failed'
+        ? (failureMessage ?? 'Upload failed — tap to retry.')
+        : undefined;
 
   return (
-    <li
-      role="checkbox"
-      aria-checked={mission.completed}
-      tabIndex={0}
-      onClick={toggle}
-      onKeyDown={(event) => {
-        if (event.key === ' ' || event.key === 'Enter') {
-          event.preventDefault();
-          toggle();
-        }
-      }}
-      className="flex cursor-pointer items-center gap-3.5 rounded-2xl bg-white p-4 shadow-sm transition duration-150 hover:shadow-md active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-teal-800 focus-visible:outline-none"
-    >
-      <IconTile icon={ICONS[mission.icon]} />
-      <MissionText title={mission.title} description={mission.description} />
-      <StatusIndicator completed={mission.completed} />
+    <li>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={!actionable}
+        aria-label={`Quest ${index + 1}: ${mission.title}`}
+        className="flex w-full items-center gap-3.5 rounded-2xl bg-brand-white p-4 text-left shadow-sm transition duration-150 enabled:cursor-pointer enabled:hover:shadow-md enabled:active:scale-[0.99] disabled:cursor-default focus-visible:ring-2 focus-visible:ring-brand-deep focus-visible:outline-none"
+      >
+        <IconTile icon={ICONS[mission.icon]} />
+        <MissionText
+          title={mission.title}
+          description={mission.description}
+          hint={hint}
+          tone={mission.status === 'failed' ? 'danger' : 'muted'}
+        />
+        <StatusIndicator status={mission.status} />
+      </button>
     </li>
   );
 }

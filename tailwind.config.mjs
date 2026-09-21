@@ -41,6 +41,10 @@ const chestShakeKeyframes = Object.fromEntries(
  * one source of truth (Tailwind loads this file through `jiti`, which resolves
  * the TS import).
  *
+ * Palette v2 (`ui-spec.md` §1.2): all mission-tracker colors live under the
+ * `brand-*` namespace. The v1 `teal-*`, `emerald-*` and `slate-*` overrides are
+ * removed — use `brand-*` everywhere.
+ *
  * @type {import('tailwindcss').Config}
  */
 export default {
@@ -79,23 +83,26 @@ export default {
         'pop-in': 'pop-in 0.4s ease-out',
       },
       colors: {
-        teal: {
-          /** Progress track (unfilled) — `ui-spec.md` §1.1. */
-          100: colors.progressTrack,
-          /** Primary accent — active tab pill and primary actions. */
-          800: colors.primary,
-        },
-        emerald: {
-          /** Progress fill / success state. */
-          500: colors.success,
-        },
-        slate: {
-          /** Muted text — mission descriptions. */
-          400: colors.subtle,
-          /** Muted text — header subtext and progress label. */
-          500: colors.muted,
-          /** Heading / mission title text. */
-          800: colors.heading,
+        /** Approved v2 brand palette — the only UI colors (`ui-spec.md` §1.2). */
+        brand: {
+          /** Page/app background. */
+          bg: colors.bg,
+          /** High-emphasis text. */
+          ink: colors.ink,
+          /** Muted/supporting text. */
+          muted: colors.muted,
+          /** Primary interactive accent (active states, fills). */
+          accent: colors.accent,
+          /** Unfilled tracks / soft highlight backgrounds. */
+          track: colors.track,
+          /** Dark surfaces (icon tiles) / high-contrast accent. */
+          deep: colors.deep,
+          /** Card/surface background. */
+          white: colors.white,
+          /** Reserved: alerts / warning / attention states. */
+          orange: colors.orange,
+          /** Reserved: soft warning background. */
+          'orange-soft': colors.orangeSoft,
         },
       },
     },

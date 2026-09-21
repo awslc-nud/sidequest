@@ -39,7 +39,7 @@ is logged below.
 ### Token pipeline (single source of truth)
 
 ```
-src/styles/tokens.ts   ←─ raw values (oklch, rem) matching ui-spec.md §1.1–1.2
+src/styles/tokens.ts   ←─ raw values (hex, rem) matching ui-spec.md §1.1–1.2
         │  imported by jiti
         ▼
 tailwind.config.mjs    ←─ theme.extend maps semantic tokens → utility scales
@@ -78,10 +78,16 @@ reach for `tokens.ts` only where a class can't express the value.
 | 18 | Status indicator | Filled emerald disc + white `Check` (not `CheckCircle2`), incomplete stays a thin ring | Matches the reference's solid check badge; reads more clearly at a glance |
 | 19 | Background bubbles | Removed; `BackgroundDecor.tsx` deleted and replaced by `UnderwaterBackdrop` (V3) | Design request: the decorative circles made the screen feel "vibe coded" |
 | 20 | Lower-half polish | `gap-3.5` row rhythm, `font-semibold`/`leading-snug` text, press (`active:scale-[0.99]`) + hover feedback | "Look & feel" pass against `reference.png` |
-| 21 | Bottom decoration | **None** — `MainPanel` runs to the bottom edge with a plain white base | Design request: earlier attempts (corner "cloud" of circles, then SVG underwater vegetation) both looked off; the bottom should stay plain |
+| 21 | Bottom decoration | **None** — `MainPanel` runs to the bottom edge with a plain white base (revisited in #28) | Design request: earlier attempts (corner "cloud" of circles, then SVG underwater vegetation) both looked off; the bottom should stay plain |
 | 22 | Chest shake intensity | Generated `chest-shake` keyframes: 9 direction changes, `linear` timing, and `--chest-shake-{x,y,rot,scale}` vars (x 2→12px, y 0.5→5px, rot 2→14°, scale 1→1.04). `shakeIntensity = (completedCount / total) ** SHAKE_INTENSITY_CURVE` (4) | Feedback: speeding up the shake alone didn't read as more intense — added amplitude, vertical jitter, a scale pulse and more alternations. The `count/total` fraction ⇒ the ramp adapts to a dynamic quest count, and the exponent keeps early quests gentle (e.g. 3/5 ≈ 3.3px, 4/5 ≈ 6.1px) |
-| 23 | Underwater backdrop | `UnderwaterBackdrop.tsx` (`z-0`): wavy water-surface band, three blurred sun shafts and a soft spotlight behind the chest, all from `ui-spec.md` §1 teal/emerald/white tokens. Page gradient now starts on `teal-100` instead of `teal-50` | Design request: after removing the bubbles the screen felt too plain; theme is underwater, but no scattered circles. The deeper top gives the white shafts contrast |
-| 24 | Panel surface | `MainPanel` `bg-white` → `bg-teal-50` | Design request: the bottom half looked too plain; uses the spec's "near-white with faint mint tint" surface (`bg-teal-50/40`) so the white mission cards read against it |
+| 23 | Underwater backdrop | `UnderwaterBackdrop.tsx` (`z-0`): wavy water-surface band, three blurred sun shafts and a soft spotlight behind the chest, all from `ui-spec.md` §1.2 `brand-*` tokens. Page gradient starts on `brand-track` instead of `brand-bg` | Design request: after removing the bubbles the screen felt too plain; theme is underwater, but no scattered circles. The deeper top gives the white shafts contrast |
+| 24 | Panel surface | `MainPanel` `bg-brand-white` → `bg-brand-bg` | Design request: the bottom half looked too plain; uses the spec's "near-white with faint mint tint" surface so the white mission cards read against it |
+| 25 | Backend wiring | `MissionsScreen` now runs on `useQuestTracker` (session + `/api/config` + `/api/progress` + offline upload queue + feedback/claim); `useMissionState.ts` and `seed.ts` deleted | Design request: connect the polished frontend to the real backend and camera capture. Replaces the standalone mock simulation |
+| 26 | Header date/venue | `event.config.json` gained optional `event_date` / `event_venue`, exposed via `GET /api/config`; `EventHeader.subtitle` is now optional | The header was hardcoded to the mockup's "TechFair 2025 / Aug 28-29"; the config is authoritative |
+| 27 | Palette v2 migration | Rewrote `tokens.ts` to the approved hex palette and moved all mission-tracker colors to the `brand-*` namespace (`bg-brand-bg`, `text-brand-ink`, `bg-brand-accent`, …); removed the v1 `teal`/`emerald`/`slate` `theme.extend` overrides. Every attendee-screen component was migrated; `color-scheme` is now `light` globally and re-declared `dark` on the marshal body. Legacy unmounted components (`AttendeeApp`, `QuestCard`, `Chest`) and the marshal UI keep their own palettes | `ui-spec.md` §1.7 marks `teal-*`/`emerald-*`/`slate-*` deprecated in favor of the approved `brand-*` tokens |
+| 28 | Bottom seabed | New `Seabed.tsx` rendered inside `MainPanel` at `-z-10`: two long dune waves in `brand-track/50` behind a `brand-accent/20` front dune; `MainPanel` padding `pb-12` → `pb-20` to clear it. Deliberately low-contrast and non-circular | Design request: "add some designs at the bottom". Revisits #21's plain bottom; avoids the rejected bubble/kelp motifs |
+| 29 | Survey decoupled from progress | `totalTaskCount`/`computeProgress` now count **photo quests only**; the chest unlocks at N/N quests and `/api/feedback` no longer flips `unlockedAt`. The survey is a separate post-quest step: it auto-opens as `FeedbackModal` once every quest is done, is also a standalone page at `/survey` (same `FeedbackForm` + `POST /api/feedback`), and stays required before claiming (`400 FEEDBACK_REQUIRED`). `ClaimFlow` drops the inline form and gains a "Take the survey" CTA; `claimGate` takes `feedbackRequired`/`feedbackDone` | Product request: the survey must not count towards the progress bar; provide both modal and standalone versions |
+| 30 | Reward reveal finale + hand-off | On the **final** quest the chest shakes for `FINALE_SHAKE_DURATION_MS` (900ms) at full strength with the chest held shut, then pops open, holds ~900ms, a `brand-white` overlay flashes (~380ms) and the screen MPA-navigates to `/reward`. `/reward` is now the **single post-completion destination**: `/` also `location.replace`s to it when the session is already complete on load, and the tracker no longer hosts claim/survey. The page renders the one prize's artwork (`loot[0].image`, new optional `image` config field, icon fallback) plus the shared `ClaimFlow`/`FeedbackModal`. Reduced-motion skips straight to `/reward`; the completion transition is derived during render so the chest can't flash open for a frame before the shake | Product request: build suspense on the last quest, flash to a reward page, and route everything there; there is always exactly one prize |
 
 `ui-spec.md` has no typography section. `reference.png` (the conceptual mockup)
 lives at the repo root and is the visual basis for the look & feel; it is not
@@ -99,7 +105,8 @@ wired into any build step.
 | `BackgroundDecor.tsx` | **Removed** — decorative bubbles deleted by design request | ❌ |
 | `UnderwaterBackdrop.tsx` | Water surface + sun shafts + hero spotlight behind content (`z-0`) | ✅ |
 | `EventHeader.tsx` | Title + subtitle | ✅ |
-| `MainPanel.tsx` | Floating rounded panel below hero | ✅ |
+| `MainPanel.tsx` | Floating rounded panel below hero; hosts the `Seabed` | ✅ |
+| `Seabed.tsx` | Soft dune-wave footer at the panel's bottom edge | ✅ |
 
 ### Hero (`src/components/hero/`)
 
@@ -112,7 +119,7 @@ wired into any build step.
 | Component | Notes | State |
 |---|---|---|
 | `IconTile.tsx` | Fixed `h-10 w-10` dark tile; icon decorative | ✅ |
-| `StatusIndicator.tsx` | Filled 24px emerald disc + white `Check`; incomplete 24px `Circle` ring | ✅ |
+| `StatusIndicator.tsx` | Status-aware 24px indicator: emerald check / spinner / red alert / gray ring | ✅ |
 | `Tab.tsx` | **Removed** — only consumer was `TabSwitcher`; deleted by design request | ❌ |
 | `ProgressBar.tsx` | Clamped 0–100, `role="progressbar"`, animated fill | ✅ |
 | `MissionText.tsx` | `min-w-0 flex-1` so long text wraps | ✅ |
@@ -121,17 +128,17 @@ wired into any build step.
 
 | Component | Purpose | State |
 |---|---|---|
-| `MissionsScreen.tsx` | Top-level composition, wired to `useMissionState` | ✅ |
+| `MissionsScreen.tsx` | Top-level composition, wired to the backend via `useQuestTracker` | ✅ |
 
 ### Missions (`src/components/missions/`)
 
 | Component | Notes | State |
 |---|---|---|
-| `types.ts` | `Mission` / `MissionIcon` UI types (ui-spec §5) | ✅ |
-| `seed.ts` | The 5 mockup missions (2/5 complete) | ✅ |
+| `types.ts` | `Mission` / `MissionIcon` UI types, incl. server `QuestStatus` | ✅ |
+| `seed.ts` | **Removed** — mock missions replaced by `/api/config` | ❌ |
 | `ProgressTracker.tsx` | Label + `ProgressBar`; derives percent | ✅ |
 | `TabSwitcher.tsx` | **Removed** — Missions/Event Info tabs deleted by design request | ❌ |
-| `MissionRow.tsx` | Tappable card; `role="checkbox"`/`aria-checked`, keyboard operable | ✅ |
+| `MissionRow.tsx` | Full-row `<button>`; opens capture (`todo`) / retries (`failed`), disabled otherwise | ✅ |
 | `MissionList.tsx` | `<ul>` of rows; empty state + `isLoading` skeletons | ✅ |
 | `MissionRowSkeleton.tsx` | `animate-pulse` placeholder matching row footprint | ✅ |
 
@@ -139,7 +146,19 @@ wired into any build step.
 
 | Hook | Notes | State |
 |---|---|---|
-| `useMissionState.ts` | Missions, `isShaking` (500ms), latched `isAllCompleted`, derived counts, `toggleMission` | ✅ |
+| `useMissionState.ts` | **Removed** — mock toggle engine replaced by the backend hook | ❌ |
+| `useQuestTracker.ts` | Session + config + progress, offline photo staging/retry, chest shake escalation, capture/claim actions | ✅ |
+
+### Survey (`src/components/react/` + `src/pages/`)
+
+| Component | Notes | State |
+|---|---|---|
+| `FeedbackForm.tsx` | Shared question renderer + `POST /api/feedback` (used by both variants) | ✅ |
+| `FeedbackModal.tsx` | Modal wrapper; auto-opens on quest completion, ESC/close dismissible | ✅ |
+| `SurveyPage.tsx` | Standalone bootstrap (session/config/progress) + form; success/incomplete/disabled states | ✅ |
+| `src/pages/survey.astro` | `/survey` route — the standalone survey form | ✅ |
+| `RewardPage.tsx` | `/reward` reveal: single prize artwork (`loot[0].image`) + claim/survey actions; locked before completion | ✅ |
+| `src/pages/reward.astro` | `/reward` route — post-finale reward reveal (loot injected server-side) | ✅ |
 
 ---
 
@@ -199,6 +218,7 @@ wired into any build step.
 | `c78916a` | enlarge chest and drop mascot from hero |
 | `b6969d4` | scale chest shake strength with completion progress |
 | `7c25b39` | remove mission and event info tabs |
+| `f7eba3b` | polish mission tracker UI and add underwater backdrop |
 
 ---
 
@@ -214,13 +234,20 @@ wired into any build step.
   `MascotChestHero.tsx`.
 - **`chest-closed.png` naming** — the repo ships `chest-locked.png`; the code
   uses the existing filename.
-- `GET /api/config` is not wired to the header/missions (hardcoded to the
-  mockup). This mission tracker is a standalone UI simulation of the seeded
-  data; reconciling it with the server progress API is outside `ui-tasks.md`.
+- **Wired to the backend (deviation #25):** header, quests, progress, uploads,
+  feedback and claim now come from `GET /api/config` / `/api/progress` and the
+  offline upload queue. `useQuestTracker` is the single integration point.
 - `MissionsScreen` is mounted at `/` (`src/pages/index.astro`, `client:load`),
   replacing the earlier `AttendeeApp`. `BaseLayout` gained an optional
   `bodyClass` so this light screen isn't forced onto the dark body used by the
   marshal pages.
-- **Header copy mismatch:** the page header is the mockup's "TechFair 2025",
-  while `event.config.json` / the document title say "Tech Summit 2026". Wire the
-  header to `GET /api/config` (or event config props) if they should match.
+- **Legacy `AttendeeApp`** (dark theme) is still in the tree and covered by
+  `tests/unit/attendeeApp.test.tsx`, but is no longer mounted. It can be removed
+  along with its test and `QuestCard.tsx` once nothing references it.
+- **Camera capture** uses a hidden `<input type="file" accept="image/*"
+  capture="environment">` — phones open the native camera, desktop falls back to
+  a file picker. A live `getUserMedia` preview is not implemented.
+- **Prize artwork:** `event.config.json` points the single loot item at
+  `/assets/prize.png`, which is **not in the repo yet**. Until it's added,
+  `/reward` falls back to a `Gift` icon (`PrizeArt`'s `onError`). Drop the final
+  prize image at `public/assets/prize.png` (or change the `image` field).

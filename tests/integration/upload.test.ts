@@ -40,18 +40,13 @@ function submissionsFor(sessionId: string): number {
   return readCount(server, 'submissions', `session_id = '${sessionId}'`);
 }
 
-/** Complete every task on a fresh session (feedback enabled fixture: 3 quests + feedback). */
+/** Complete every photo quest on a fresh session; the chest unlocks at N/N (feedback excluded). */
 async function unlockSession(): Promise<{ client: ApiClient; sessionId: string }> {
   const { client, sessionId } = await ApiClient.newSession(server.baseUrl);
   for (const prompt of PROMPTS) {
     const res = await upload(client, sessionId, prompt, randomUUID(), webpBlob(4096));
     expect([200, 201]).toContain(res.status);
   }
-  const feedback = await client.postJson('/api/feedback', {
-    session_id: sessionId,
-    answers: { q1: 5, q2: 'nice' },
-  });
-  expect(feedback.status).toBe(200);
   return { client, sessionId };
 }
 
@@ -64,7 +59,7 @@ describe('POST /api/upload (§3.3/§4.3)', () => {
     const body = await res.json();
     expect(body.accepted).toBe(true);
     expect(body.progress.completed).toBe(1);
-    expect(body.progress.total).toBe(4);
+    expect(body.progress.total).toBe(3);
 
     const files = filesForSession(sessionId, 'prompt_1_arrival');
     expect(files).toHaveLength(1);

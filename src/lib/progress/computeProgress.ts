@@ -9,8 +9,8 @@ export interface ProgressDb {
   session: {
     findUnique(args: {
       where: { id: string };
-      select: { feedbackDone: true };
-    }): Promise<{ feedbackDone: boolean } | null>;
+      select: { id: true };
+    }): Promise<{ id: string } | null>;
   };
 }
 
@@ -21,10 +21,13 @@ export interface ProgressResult {
 }
 
 /**
- * Single source of truth for K/N (§4.4). Called identically from
- * /api/upload, /api/feedback and /api/progress/:sid so the
- * "chest unlocks exactly at K == N" invariant can never be computed
- * inconsistently across endpoints.
+ * Single source of truth for K/N. Called identically from /api/upload,
+ * /api/feedback and /api/progress/:sid so the "chest unlocks exactly at K == N"
+ * invariant can never be computed inconsistently across endpoints.
+ *
+ * `N` is the photo-quest count only: the feedback survey is a separate step and
+ * does not contribute to progress (see `totalTaskCount`). `K` is the number of
+ * distinct completed photo prompts.
  *
  * `completed_prompt_ids` is de-duplicated defensively: the DB unique
  * constraint already prevents a second row per (session, prompt), but counting
@@ -38,16 +41,15 @@ export async function computeProgress(db: ProgressDb, sessionId: string, cfg: Ev
     }),
     db.session.findUnique({
       where: { id: sessionId },
-      select: { feedbackDone: true },
+      select: { id: true },
     }),
   ]);
 
   if (!session) return null;
 
   const completedPromptIds = [...new Set(submissions.map((s) => s.promptId))];
-  const feedbackCount = session.feedbackDone ? 1 : 0;
   return {
-    completed: completedPromptIds.length + feedbackCount,
+    completed: completedPromptIds.length,
     total: totalTaskCount(cfg),
     completed_prompt_ids: completedPromptIds,
   };

@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AppShell from '../components/shell/AppShell';
+import UnderwaterBackdrop from '../components/shell/UnderwaterBackdrop';
+import { getEventConfig } from '../lib/config/loadEventConfig';
+import SurveyPage from '../components/react/SurveyPage';
+
+const cfg = getEventConfig();
+---
+
+<BaseLayout
+  title={`${cfg.event_name} — Survey`}
+  description="Share feedback about the event"
+  bodyClass="bg-brand-bg text-brand-ink antialiased"
+>
+  <AppShell>
+    <UnderwaterBackdrop />
+    <SurveyPage client:load />
+  </AppShell>
+</BaseLayout>

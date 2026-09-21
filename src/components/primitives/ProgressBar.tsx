@@ -15,14 +15,14 @@ export default function ProgressBar({ percent }: ProgressBarProps) {
 
   return (
     <div
-      className="h-2 w-full overflow-hidden rounded-full bg-teal-100"
+      className="h-2 w-full overflow-hidden rounded-full bg-brand-track"
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={clamped}
     >
       <div
-        className="h-2 rounded-full bg-emerald-500 transition-all duration-300 ease-out"
+        className="h-2 rounded-full bg-brand-accent transition-all duration-300 ease-out"
         style={{ width: `${clamped}%` }}
       />
     </div>

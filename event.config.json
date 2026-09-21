@@ -1,6 +1,8 @@
 {
   "event_name": "Tech Summit 2026",
   "event_slug": "tech-summit-2026",
+  "event_date": "Aug 29, 2026",
+  "event_venue": "Main Campus",
   "allowed_email_domain": "school.edu.ph",
   "feedback_keystone": {
     "enabled": true,
@@ -10,8 +12,7 @@
     ]
   },
   "loot": [
-    { "id": "sticker_pack", "label": "1x Sticker Pack", "qty": 1 },
-    { "id": "tardigrade_pin", "label": "1x Tardigrade Pin", "qty": 1 }
+    { "id": "tardigrade_pin", "label": "1x Tardigrade Pin", "qty": 1, "image": "/assets/prize.png" }
   ],
   "quests": [
     { "id": "prompt_1_arrival", "title": "Arrival Selfie", "description": "Snap yourself at the entrance banner." },

@@ -43,6 +43,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
     return apiError('CHEST_NOT_UNLOCKED', 'complete all tasks before claiming your pass', 400);
   }
 
+  // The survey no longer counts towards progress, but it remains the keystone
+  // required before claiming (see docs/ui-build.md #29).
+  if (cfg.feedback_keystone.enabled && !session.feedbackDone) {
+    return apiError('FEEDBACK_REQUIRED', 'complete the survey before claiming your pass', 400);
+  }
+
   const emailCheck = validateEmail(student_email, cfg.allowed_email_domain);
   if (!emailCheck.ok) {
     return apiError(emailCheck.code, emailCheck.code === 'EMAIL_DOMAIN_MISMATCH' ? 'email domain not allowed' : 'invalid email syntax', 422);

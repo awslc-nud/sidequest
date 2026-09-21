@@ -1,8 +1,8 @@
+import type { QuestStatus } from '../../client/types';
+
 /**
- * UI types for the mission tracker (`ui-spec.md` §5).
- *
- * Kept separate from `src/client/types.ts` (which mirrors the server API) since
- * this shape is derived from the seeded mockup data, not an API response.
+ * UI types for the mission tracker (`ui-spec.md` §5), now driven by the server
+ * config/progress API rather than seeded mockup data.
  */
 
 /** Icon key for a mission's `IconTile`. */
@@ -13,5 +13,6 @@ export interface Mission {
   title: string;
   description: string;
   icon: MissionIcon;
-  completed: boolean;
+  /** Server/local completion state: todo | pending_sync | failed | done. */
+  status: QuestStatus;
 }

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { CheckCircle2, ImagePlus, Loader2, RefreshCcw, X } from 'lucide-react';
+import { Check, ImagePlus, Loader2, RefreshCcw, X } from 'lucide-react';
 import { compressBlobToWebP, ImageProcessingError } from '../../client/canvasCompress';
 
 interface Props {
@@ -14,8 +14,9 @@ type Phase = 'pick' | 'preview' | 'compressing';
  * Capture → review flow. AC-01: the photo stays entirely in memory until the
  * attendee taps Confirm; Retake discards the buffer with zero I/O.
  *
- * Capture source is a device file picker (works on desktop + mobile). This is
- * the same Confirm/Retake gate the camera path will feed once it lands.
+ * The hidden file input carries `capture="environment"`, so on a phone the OS
+ * camera opens directly; desktop falls back to a file picker. This is the
+ * Confirm/Retake gate applied to whichever source the platform provides.
  */
 export default function CaptureReview({ promptTitle, onCancel, onConfirm }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -31,8 +32,6 @@ export default function CaptureReview({ promptTitle, onCancel, onConfirm }: Prop
     }
     setError(null);
     const url = URL.createObjectURL(file);
-    // retain the object URL for preview until Retake/Confirm
-    (file as unknown as { _url: string })._url = url;
     setPreviewUrl(url);
     setPhase('preview');
   };
@@ -60,14 +59,19 @@ export default function CaptureReview({ promptTitle, onCancel, onConfirm }: Prop
   };
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/80 p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-base font-medium">Add photo</h3>
-        <button type="button" onClick={onCancel} aria-label="Close" className="rounded p-1 text-zinc-400 hover:text-zinc-200">
+    <div className="flex flex-col gap-3 rounded-2xl border border-brand-track bg-brand-white p-4 shadow-xl">
+      <div className="flex items-center justify-between">
+        <h3 className="text-base font-semibold text-brand-ink">Add photo</h3>
+        <button
+          type="button"
+          onClick={onCancel}
+          aria-label="Close"
+          className="rounded-full p-1.5 text-brand-muted transition hover:bg-brand-bg hover:text-brand-ink"
+        >
           <X className="h-4 w-4" />
         </button>
       </div>
-      <p className="mb-3 text-sm text-zinc-400">{promptTitle}</p>
+      <p className="text-sm text-brand-muted">{promptTitle}</p>
 
       <input
         ref={inputRef}
@@ -83,38 +87,40 @@ export default function CaptureReview({ promptTitle, onCancel, onConfirm }: Prop
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="flex w-full flex-col items-center gap-2 rounded-lg border border-dashed border-zinc-700 px-4 py-10 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
+          className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-brand-track px-4 py-10 text-brand-deep transition hover:border-brand-accent hover:bg-brand-bg"
         >
           <ImagePlus className="h-8 w-8" />
-          <span className="text-sm">Choose a photo from your device</span>
+          <span className="text-sm font-medium">Take or choose a photo</span>
         </button>
       )}
 
       {phase === 'preview' && previewUrl && (
         <div className="flex flex-col gap-3">
-          <img src={previewUrl} alt="Preview of your capture" className="max-h-72 w-full rounded-lg object-contain" />
-          {error && <p className="rounded-lg border border-red-900/60 bg-red-950/40 px-3 py-2 text-sm text-red-300">{error}</p>}
+          <img src={previewUrl} alt="Preview of your capture" className="max-h-72 w-full rounded-xl object-contain" />
+          {error && (
+            <p className="rounded-lg border border-brand-orange/50 bg-brand-orange-soft px-3 py-2 text-sm text-brand-ink">{error}</p>
+          )}
           <div className="flex gap-3">
             <button
               type="button"
               onClick={retake}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-700 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-brand-track px-4 py-2.5 text-sm font-medium text-brand-muted transition hover:bg-brand-bg"
             >
               <RefreshCcw className="h-4 w-4" /> Retake
             </button>
             <button
               type="button"
               onClick={confirm}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-900 hover:bg-white"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-brand-deep px-4 py-2.5 text-sm font-semibold text-brand-white transition hover:bg-brand-deep/90"
             >
-              <CheckCircle2 className="h-4 w-4" /> Confirm
+              <Check className="h-4 w-4" strokeWidth={3} /> Confirm
             </button>
           </div>
         </div>
       )}
 
       {phase === 'compressing' && (
-        <div className="flex items-center justify-center gap-2 py-8 text-zinc-400">
+        <div className="flex items-center justify-center gap-2 py-8 text-brand-muted">
           <Loader2 className="h-5 w-5 animate-spin" /> Processing…
         </div>
       )}

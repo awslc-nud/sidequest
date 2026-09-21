@@ -5,36 +5,38 @@
  * `tailwind.config.mjs` via `@config`) and code where utility classes cannot be
  * used: inline SVG fills, canvas/`style` props, and JS-computed measurements.
  *
- * Values match `ui-spec.md` §1.1–1.2 exactly. Colors are Tailwind v4's `oklch`
- * tokens (not hex) so there is no drift from the generated utility classes.
+ * Values match the approved **v2** palette in `ui-spec.md` §1.1–1.2 exactly.
+ * These are the only UI colors in the mission tracker — the v1 `teal-*`,
+ * `emerald-*` and `slate-*` default-Tailwind classes are deprecated.
  *
- * Prefer utility classes (`bg-teal-800`, `rounded-2xl`, …) in components; reach
- * for these constants only when a class cannot express the value.
+ * Prefer the generated `brand-*` utility classes (`bg-brand-accent`,
+ * `text-brand-ink`, …) in components; reach for these constants only when a
+ * class cannot express the value.
  */
 
-/** `ui-spec.md` §1.1 color roles. */
+/** `ui-spec.md` §1.1 approved brand colors. */
 export const colors = {
-  /** Primary accent — active tab pill / primary actions (`teal-800`). */
-  primary: 'oklch(43.7% 0.078 188.216)',
-  /** Progress fill / success state (`emerald-500`). */
-  success: 'oklch(69.6% 0.17 162.48)',
-  /** Progress track, unfilled (`teal-100`). */
-  progressTrack: 'oklch(95.3% 0.051 180.801)',
-  /** Heading / mission title text (`slate-800`). */
-  heading: 'oklch(27.9% 0.041 260.031)',
-  /** Muted text — header subtext, progress label (`slate-500`). */
-  muted: 'oklch(55.4% 0.046 257.417)',
-  /** Faint text — mission descriptions (`slate-400`). */
-  subtle: 'oklch(70.4% 0.04 256.788)',
-  /** Incomplete status ring (`gray-300`). */
-  statusIncomplete: 'oklch(87.2% 0.01 258.338)',
-  /** Icon tile background (`slate-900`). */
-  iconTile: 'oklch(20.8% 0.042 265.755)',
-  /** Card / surface background (`white`). */
-  surface: '#fff',
+  /** Page/app background — pale mint (`bg-brand-bg`). */
+  bg: '#EDF7F9',
+  /** Headings / high-emphasis text (`text-brand-ink`). */
+  ink: '#000000',
+  /** Muted / supporting text (`text-brand-muted`). */
+  muted: '#7B7B7B',
+  /** Primary interactive accent — active states, fills (`brand-accent`). */
+  accent: '#64CCC3',
+  /** Unfilled tracks / soft highlight backgrounds (`brand-track`). */
+  track: '#C8EDED',
+  /** Dark surfaces (icon tiles) / high-contrast accent (`brand-deep`). */
+  deep: '#175750',
+  /** Card / surface background (`brand-white`). */
+  white: '#FFFFFF',
+  /** Reserved: alerts / warning / attention states (`brand-orange`). */
+  orange: '#FF8E04',
+  /** Reserved: soft warning background (`brand-orange-soft`). */
+  orangeSoft: '#FFE4C4',
 } as const;
 
-/** Vertical rhythm from `ui-spec.md` §1.2. */
+/** Vertical rhythm from `ui-spec.md` §1.4. */
 export const spacing = {
   /** Gap between mission rows (`space-y-3`). */
   missionRowGap: '0.75rem',
@@ -42,7 +44,7 @@ export const spacing = {
   cardPadding: '1rem',
 } as const;
 
-/** Corner radii from `ui-spec.md` §1.2. */
+/** Corner radii from `ui-spec.md` §1.4. */
 export const radius = {
   /** Icon tile (`rounded-xl`). */
   iconTile: '0.75rem',

@@ -26,6 +26,11 @@ function validateAnswers(cfg: EventConfig, answers: Record<string, unknown>): { 
 /**
  * POST /api/feedback — submit the keystone survey (§3.5).
  * Accepted only once feedback is enabled in config AND all photo prompts are complete.
+ *
+ * The survey is a **separate post-quest step**: it is recorded and gates the
+ * claim (see `/api/claim`), but it does not count towards progress or the chest
+ * unlock (product decision — see `docs/ui-build.md` #29). This endpoint is shared
+ * by the attendee modal and the standalone `/survey` form.
  */
 export const POST: APIRoute = async ({ request, locals }) => {
   const cfg = getEventConfig();
@@ -84,14 +89,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
     await tx.session.update({ where: { id: session.id }, data: { feedbackDone: true } });
 
-    const p = await computeProgress(tx, session.id, cfg);
-    if (p && p.completed === p.total) {
-      await tx.session.updateMany({
-        where: { id: session.id, unlockedAt: null },
-        data: { unlockedAt: BigInt(now) },
-      });
-    }
-    return p;
+    return computeProgress(tx, session.id, cfg);
   });
 
   if (!progress) return apiError('SESSION_NOT_FOUND', 'session not found', 404);
@@ -99,6 +97,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   return json(
     {
       accepted: true,
+      feedback_done: true,
       progress,
       chest_unlocked: progress.completed === progress.total,
     },

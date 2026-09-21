@@ -10,6 +10,8 @@ export const LootItemSchema = z.object({
   id: z.string().regex(/^[a-z0-9_]+$/),
   label: z.string().min(1),
   qty: z.number().int().positive(),
+  /** Optional prize artwork (e.g. `/assets/prize.png`) shown on `/reward`. */
+  image: z.string().min(1).optional(),
 });
 
 export const FeedbackQuestionSchema = z.object({
@@ -21,6 +23,10 @@ export const FeedbackQuestionSchema = z.object({
 export const EventConfigSchema = z.object({
   event_name: z.string().min(1),
   event_slug: z.string().regex(/^[a-z0-9-]+$/),
+  /** Optional header line shown under the event name, e.g. "Aug 29, 2026". */
+  event_date: z.string().min(1).optional(),
+  /** Optional header line shown under the event name, e.g. "Main Campus". */
+  event_venue: z.string().min(1).optional(),
   allowed_email_domain: z.string().regex(/^[a-z0-9.-]+\.[a-z]{2,}$/i),
   feedback_keystone: z.object({
     enabled: z.boolean(),
@@ -37,9 +43,13 @@ export type FeedbackQuestion = z.infer<typeof FeedbackQuestionSchema>;
 
 /**
  * Derived value — Total Task Count (N):
- * `N = quests.length + (feedback_keystone.enabled ? 1 : 0)`
- * Always computed fresh from the loaded config, never stored (§2.3/§4.4).
+ * `N = quests.length`
+ *
+ * The feedback survey is a **separate post-quest step** and intentionally does
+ * not count towards the progress bar or the chest unlock (product decision — see
+ * `docs/ui-build.md` #29). Always computed fresh from the loaded config, never
+ * stored.
  */
 export function totalTaskCount(cfg: EventConfig): number {
-  return cfg.quests.length + (cfg.feedback_keystone.enabled ? 1 : 0);
+  return cfg.quests.length;
 }

@@ -23,7 +23,7 @@ describe('contract: GET /api/config (§3.1)', () => {
     expect(body.event_name).toBe('Tech Summit 2026');
     expect(body.event_slug).toBe('tech-summit-2026');
     expect(body.allowed_email_domain).toBe('school.edu.ph');
-    expect(body.total_tasks).toBe(4); // 3 quests + feedback keystone
+    expect(body.total_tasks).toBe(3); // photo quests only — survey excluded
     expect(Array.isArray(body.quests)).toBe(true);
     for (const q of body.quests) {
       expect(typeof q.id).toBe('string');

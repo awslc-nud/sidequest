@@ -15,8 +15,8 @@ interface IconTileProps {
  */
 export default function IconTile({ icon: Icon }: IconTileProps) {
   return (
-    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 p-2">
-      <Icon size={20} className="text-white" aria-hidden="true" />
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-deep p-2">
+      <Icon size={20} className="text-brand-white" aria-hidden="true" />
     </span>
   );
 }

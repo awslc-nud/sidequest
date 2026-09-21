@@ -2,33 +2,84 @@
 
 **Source:** Conceptual mockup (mobile, single-screen mission tracker with mascot/chest reward mechanic)
 **Status:** Implementation-ready reference for `ui-tasks.md`
+**Palette version:** v2 — updated to match approved brand color tokens
 
 ---
 
 ## 1. Design Tokens
 
-### 1.1 Color Palette → Tailwind Mapping
+### 1.1 Approved Brand Colors (source of truth)
 
-| Role | Description | Tailwind Class |
-|---|---|---|
-| Page background | Soft mint-to-white vertical gradient | `bg-gradient-to-b from-teal-50 via-emerald-50 to-white` |
-| Header text (title) | Deep slate/navy | `text-slate-800` |
-| Header subtext (date/location) | Muted slate | `text-slate-500` |
-| Card/Surface background | Near-white with faint mint tint | `bg-white/90` or `bg-teal-50/40` |
-| Card border (subtle) | None visible; rely on shadow | — |
-| Icon tile background | Very dark navy, almost black | `bg-slate-900` |
-| Icon tile foreground | White icon | `text-white` |
-| Primary accent (active tab, progress fill, checkmark) | Deep teal/emerald | `bg-teal-700` / `bg-emerald-500` |
-| Progress track (unfilled) | Pale mint | `bg-teal-100` |
-| Inactive tab background | Light mint-gray | `bg-slate-100` |
-| Inactive tab text | Slate | `text-slate-600` |
-| Mission title text | Dark slate | `text-slate-800` |
-| Mission description text (muted) | Gray | `text-slate-400` |
-| Incomplete status ring | Light gray outline | `text-gray-300` |
-| Complete status fill | Green/teal filled circle | `text-emerald-500` (fill), `text-white` (check) |
-| Decorative bubbles | Translucent teal circles | `bg-teal-200/40`, `bg-teal-300/30` |
+These are the exact tokens from the approved palette. Every UI color in this spec must map to one of these — no ad hoc hex values elsewhere.
 
-### 1.2 Radius / Elevation / Spacing
+| Token Name | Hex | Swatch | Notes |
+|---|---|---|---|
+| Background | `#EDF7F9` | pale mint | Page/app background |
+| Primary Text | `#000000` | black | Headings, high-emphasis text |
+| Secondary Text | `#7B7B7B` | gray | Muted/supporting text |
+| Secondary Accent | `#64CCC3` | teal | Primary interactive accent (active states, fills) |
+| Third Accent | `#C8EDED` | pale teal | Unfilled tracks, soft highlight backgrounds |
+| Color (Deep Accent) | `#175750` | deep teal-green | Dark surfaces (icon tiles), high-contrast accent |
+| White | `#FFFFFF` | white | Card/surface background |
+| Orange | `#FF8E04` | orange | Reserved: alerts / warning / attention states |
+| Secondary Orange | `#FFE4C4` | pale orange | Reserved: soft warning background |
+
+> Orange / Secondary Orange are not used by any element in the current mockup. They're captured here as approved tokens for future states (e.g. an "urgent mission" badge or error state) so the agent doesn't invent an off-palette color if that need comes up.
+
+### 1.2 Tailwind Config — Custom Color Extension
+
+Since these hex values don't map cleanly to Tailwind's default palette, register them as named `brand-*` tokens rather than using default color names (`teal-*`, `slate-*`, `emerald-*` are **deprecated** for this project as of v2 — do not use them going forward).
+
+```js
+// tailwind.config.js
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          bg: '#EDF7F9',
+          ink: '#000000',
+          muted: '#7B7B7B',
+          accent: '#64CCC3',
+          track: '#C8EDED',
+          deep: '#175750',
+          white: '#FFFFFF',
+          orange: '#FF8E04',
+          'orange-soft': '#FFE4C4',
+        },
+      },
+    },
+  },
+};
+```
+
+### 1.3 Semantic Role → Tailwind Class Mapping
+
+| Role | Description | Token | Tailwind Class |
+|---|---|---|---|
+| Page background | Flat pale mint (no gradient in v2 — see note below) | Background | `bg-brand-bg` |
+| Header text (title) | High-emphasis heading | Primary Text | `text-brand-ink` |
+| Header subtext (date/location) | Muted supporting text | Secondary Text | `text-brand-muted` |
+| Card/Surface background | White cards floating on mint background | White | `bg-brand-white` |
+| Icon tile background | Dark deep-teal square | Color (Deep Accent) | `bg-brand-deep` |
+| Icon tile foreground | Icon on dark tile | White | `text-brand-white` |
+| Primary accent (active tab, progress fill, checkmark) | Teal accent | Secondary Accent | `bg-brand-accent` / `text-brand-accent` |
+| Progress track (unfilled) | Pale teal | Third Accent | `bg-brand-track` |
+| Inactive tab background | Neutral, recedes behind active tab | White | `bg-brand-white` |
+| Inactive tab text | Muted | Secondary Text | `text-brand-muted` |
+| Mission title text | High-emphasis | Primary Text | `text-brand-ink` |
+| Mission description text (muted) | Supporting | Secondary Text | `text-brand-muted` |
+| Incomplete status ring | Soft, low-emphasis outline | Third Accent | `text-brand-track` (or `text-brand-muted` if track color reads too faint against white — verify in browser) |
+| Complete status fill | Filled checkmark | Secondary Accent | `text-brand-accent` (fill), `text-brand-white` (check glyph) |
+| Decorative bubbles | Translucent teal circles | Secondary Accent / Third Accent | `bg-brand-accent/20`, `bg-brand-track/50` |
+| Reserved: alert/urgent badge | Not in current mockup | Orange | `bg-brand-orange text-brand-white` |
+| Reserved: soft warning background | Not in current mockup | Secondary Orange | `bg-brand-orange-soft` |
+
+> **Background change from v1:** the original spec used a `from-teal-50 via-emerald-50 to-white` gradient. The approved palette defines a single flat `Background` value (`#EDF7F9`), so v2 uses a **flat background** (`bg-brand-bg`) instead of a gradient. If a gradient is still desired for visual depth, it should be a subtle `bg-brand-bg` → `bg-brand-white` gradient (`bg-gradient-to-b from-brand-bg to-brand-white`) — flag to design for a decision before implementing either way.
+
+### 1.4 Radius / Elevation / Spacing
+
+*(Unchanged from v1 — not color-related.)*
 
 | Token | Value |
 |---|---|
@@ -46,15 +97,18 @@
 ## 2. Layout Skeleton
 
 ```
-<div class="relative min-h-screen bg-gradient-to-b from-teal-50 via-emerald-50 to-white overflow-hidden">
+<div class="relative min-h-screen bg-brand-bg overflow-hidden">
 
   <!-- Decorative background bubbles (absolute positioned, behind content) -->
-  <div class="absolute inset-0 pointer-events-none">...bubble divs...</div>
+  <div class="absolute inset-0 pointer-events-none">
+    <!-- e.g. <div class="bg-brand-accent/20 rounded-full ..." /> -->
+    <!-- e.g. <div class="bg-brand-track/50 rounded-full ..." /> -->
+  </div>
 
   <!-- Header -->
   <header class="relative z-10 text-center pt-8 pb-2">
-    <h1>TechFair 2025</h1>
-    <p>Aug 28 - 29, 2025 • Main Campus</p>
+    <h1 class="text-brand-ink">TechFair 2025</h1>
+    <p class="text-brand-muted">Aug 28 - 29, 2025 • Main Campus</p>
   </header>
 
   <!-- Mascot + Chest hero zone -->
@@ -64,20 +118,20 @@
   </div>
 
   <!-- Floating panel (overlaps hero zone, rounded top, sits over rest of screen) -->
-  <main class="relative z-20 -mt-6 bg-white rounded-t-[2.5rem] shadow-md px-4 pt-6 pb-10 min-h-[60vh]">
+  <main class="relative z-20 -mt-6 bg-brand-white rounded-t-[2.5rem] shadow-md px-4 pt-6 pb-10 min-h-[60vh]">
 
     <!-- Progress -->
     <section class="flex flex-col items-center mb-4">
-      <span class="text-sm text-slate-600 mb-2">2 / 5 completed</span>
-      <div class="w-full h-2 bg-teal-100 rounded-full">
-        <div class="h-2 bg-emerald-500 rounded-full" style="width: 40%" />
+      <span class="text-sm text-brand-muted mb-2">2 / 5 completed</span>
+      <div class="w-full h-2 bg-brand-track rounded-full">
+        <div class="h-2 bg-brand-accent rounded-full" style="width: 40%" />
       </div>
     </section>
 
     <!-- Tabs -->
     <nav class="flex gap-2 mb-4">
-      <button class="flex-1 py-2 rounded-full bg-teal-800 text-white">Missions</button>
-      <button class="flex-1 py-2 rounded-full bg-slate-100 text-slate-600">Event Info</button>
+      <button class="flex-1 py-2 rounded-full bg-brand-deep text-brand-white">Missions</button>
+      <button class="flex-1 py-2 rounded-full bg-brand-white text-brand-muted border border-brand-track">Event Info</button>
     </nav>
 
     <!-- Mission List -->
@@ -93,6 +147,7 @@
 - Single-column mobile flow (`flex flex-col`), no sidebar.
 - Mascot/chest hero sits in normal flow but the white panel below uses a **negative margin** (`-mt-6` or similar) to visually tuck under/overlap the hero bubbles.
 - Mission list is a simple vertical stack, not a grid.
+- Inactive tab now uses a thin `border-brand-track` since a flat white-on-white background alone gives too little separation from the panel behind it — verify visually and drop the border if it reads fine without one.
 
 ---
 
@@ -117,11 +172,11 @@
 │   │   └── <Tab label="Event Info"> (states: active | inactive)
 │   └── <MissionList>
 │       └── <MissionRow> (x5, repeatable)
-│           ├── <IconTile>          (dark square, holds Lucide icon)
+│           ├── <IconTile>          (dark square, bg-brand-deep, holds Lucide icon)
 │           ├── <MissionText>
-│           │   ├── <MissionTitle>
-│           │   └── <MissionDescription>
-│           └── <StatusIndicator>   (states: complete=CheckCircle2 filled | incomplete=Circle outline)
+│           │   ├── <MissionTitle>       (text-brand-ink)
+│           │   └── <MissionDescription> (text-brand-muted)
+│           └── <StatusIndicator>   (states: complete=CheckCircle2 text-brand-accent | incomplete=Circle text-brand-track)
 ```
 
 **States per component:**
@@ -137,12 +192,12 @@
 
 ### 4.1 Lucide-react Icon Mapping
 
-| Visual in mockup | Lucide Icon | Usage |
-|---|---|---|
-| Camera icon (4 of 5 mission rows) | `Camera` | IconTile for photo-based missions |
-| Two-person silhouette icon ("New Friend" row) | `Users` | IconTile for social mission |
-| Filled green check circle | `CheckCircle2` | StatusIndicator — completed |
-| Empty gray ring | `Circle` | StatusIndicator — incomplete |
+| Visual in mockup | Lucide Icon | Usage | Color class |
+|---|---|---|---|
+| Camera icon (4 of 5 mission rows) | `Camera` | IconTile for photo-based missions | `text-brand-white` on `bg-brand-deep` |
+| Two-person silhouette icon ("New Friend" row) | `Users` | IconTile for social mission | `text-brand-white` on `bg-brand-deep` |
+| Filled green check circle | `CheckCircle2` | StatusIndicator — completed | `text-brand-accent` |
+| Empty gray ring | `Circle` | StatusIndicator — incomplete | `text-brand-track` |
 
 ### 4.2 Custom Image Assets (provided)
 
@@ -196,7 +251,7 @@ derived:
 |---|---|---|---|
 | Single mission checked (not last) | `chest-closed.png` + `animate-shake` keyframe (rapid rotate/translate vibration, e.g. ±3° / ±2px) | Swap to `mascot-surprised.png` + small jump (`translateY` bounce) | 500ms, then revert both to default/idle |
 | Last mission checked → `isAllCompleted = true` | Swap `chest-closed.png` → `chest-open.png` permanently, with `scale(0.7 → 1.05 → 1)` pop-in | Switch to excited/waving state permanently | ~400ms pop transition, no revert |
-| Progress bar update | — | — | Fill width animates via CSS `transition: width 300ms ease-out` on every toggle |
+| Progress bar update | `bg-brand-accent` fill | — | Fill width animates via CSS `transition: width 300ms ease-out` on every toggle |
 
 **Suggested keyframe:**
 
@@ -214,3 +269,11 @@ Applied via a conditional class (`isShaking && 'animate-chest-shake'`) rather th
 - Un-checking a mission does **not** trigger the shake sequence — shake fires only on a completion (false → true) transition.
 - The final mission's completion transition skips the shake path entirely and goes straight to the permanent "all completed" state (chest-open + excited mascot); the two states are mutually exclusive, not sequential.
 - `isAllCompleted` does not reset if a mission is later un-checked, unless the product decision is to make it reversible — flag this to product before implementation if reversibility is required.
+
+---
+
+## 7. Migration Notes (v1 → v2)
+
+- All `teal-*`, `emerald-*`, `slate-*` default-Tailwind class references from v1 are replaced with `brand-*` custom tokens throughout this document and `ui-tasks.md` should be updated to match before the agent starts Phase 1.
+- Page background changed from a 3-stop gradient to a flat `bg-brand-bg` (see §1.3 note) — confirm with design before implementation if the gradient look is still wanted.
+- Icon tile dark background changed from generic `slate-900` (near-black) to the on-brand deep teal `#175750` (`bg-brand-deep`) — this is a visible color shift from the original mockup screenshot and should be visually confirmed against final design intent, not just against the old spec.

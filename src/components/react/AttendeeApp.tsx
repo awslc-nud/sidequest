@@ -332,6 +332,8 @@ export default function AttendeeApp() {
           progress={progress}
           sessionId={progress.session_id}
           localPending={localPending}
+          surveyPending={false}
+          onOpenSurvey={() => undefined}
           onRefresh={refreshRemote}
         />
       )}

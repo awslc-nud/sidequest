@@ -3,6 +3,9 @@
 export interface PublicConfig {
   event_name: string;
   event_slug: string;
+  /** Optional header lines rendered under the event name. */
+  event_date: string | null;
+  event_venue: string | null;
   allowed_email_domain: string;
   quests: Array<{ id: string; title: string; description: string }>;
   feedback_keystone: { enabled: boolean; questions: Array<{ id: string; type: 'rating_1_5' | 'text' | 'boolean'; label: string }> };
