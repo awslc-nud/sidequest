@@ -1,0 +1,30 @@
+# Dependencies / build output (rebuilt inside the image)
+node_modules
+dist
+.astro
+src/lib/db/generated
+
+# Local runtime state
+data
+coverage
+*.log
+
+# VCS / editor
+.git
+.gitignore
+.idea
+.DS_Store
+
+# Secrets (pass real env at run time)
+.env
+.env.*
+!.env.example
+
+# Dev-only
+tests
+reference.png
+reference.png:Zone.Identifier
+ui-spec.md
+ui-tasks.md
+spec.md
+docs
