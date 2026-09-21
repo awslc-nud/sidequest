@@ -104,14 +104,14 @@ export default function CaptureReview({ promptTitle, onCancel, onConfirm }: Prop
             <button
               type="button"
               onClick={retake}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-brand-track px-4 py-2.5 text-sm font-medium text-brand-muted transition hover:bg-brand-bg"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-brand-track px-4 py-2.5 text-sm font-medium text-brand-deep transition hover:bg-brand-track/40"
             >
               <RefreshCcw className="h-4 w-4" /> Retake
             </button>
             <button
               type="button"
               onClick={confirm}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-brand-deep px-4 py-2.5 text-sm font-semibold text-brand-white transition hover:bg-brand-deep/90"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-brand-deep px-4 py-2.5 text-sm font-semibold text-brand-white transition hover:bg-brand-ink"
             >
               <Check className="h-4 w-4" strokeWidth={3} /> Confirm
             </button>

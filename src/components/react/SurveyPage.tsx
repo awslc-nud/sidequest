@@ -134,7 +134,7 @@ function StatusCard({
       {cta && (
         <a
           href={cta.href}
-          className="mt-1 rounded-full bg-brand-deep px-4 py-2.5 text-sm font-semibold text-brand-white transition hover:bg-brand-deep/90"
+          className="mt-1 rounded-full bg-brand-deep px-4 py-2.5 text-sm font-semibold text-brand-white transition hover:bg-brand-ink"
         >
           {cta.label}
         </a>

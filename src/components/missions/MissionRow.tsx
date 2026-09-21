@@ -46,7 +46,7 @@ export default function MissionRow({ mission, index, failureMessage, onStart, on
         onClick={onClick}
         disabled={!actionable}
         aria-label={`Quest ${index + 1}: ${mission.title}`}
-        className="flex w-full items-center gap-3.5 rounded-2xl bg-brand-white p-4 text-left shadow-sm transition duration-150 enabled:cursor-pointer enabled:hover:shadow-md enabled:active:scale-[0.99] disabled:cursor-default focus-visible:ring-2 focus-visible:ring-brand-deep focus-visible:outline-none"
+        className="flex w-full items-center gap-3.5 rounded-2xl bg-brand-white p-4 text-left shadow-sm ring-1 ring-brand-track/50 transition duration-150 enabled:cursor-pointer enabled:hover:shadow-md enabled:active:scale-[0.99] disabled:cursor-default focus-visible:ring-2 focus-visible:ring-brand-deep focus-visible:outline-none"
       >
         <IconTile icon={ICONS[mission.icon]} />
         <MissionText

@@ -52,7 +52,7 @@ export default function FeedbackForm({ cfg, sessionId, onSubmitted }: Props) {
                   className={
                     answers[q.id] === n
                       ? 'h-9 w-9 rounded-lg bg-brand-deep font-medium text-brand-white'
-                      : 'h-9 w-9 rounded-lg border border-brand-track text-brand-muted transition hover:bg-brand-bg'
+                      : 'h-9 w-9 rounded-lg border border-brand-track text-brand-deep transition hover:bg-brand-track/40'
                   }
                 >
                   {n}
@@ -71,7 +71,7 @@ export default function FeedbackForm({ cfg, sessionId, onSubmitted }: Props) {
                   className={
                     answers[q.id] === (b === 'Yes')
                       ? 'rounded-lg bg-brand-deep px-3 py-1.5 text-sm font-medium text-brand-white'
-                      : 'rounded-lg border border-brand-track px-3 py-1.5 text-sm text-brand-muted transition hover:bg-brand-bg'
+                      : 'rounded-lg border border-brand-track px-3 py-1.5 text-sm text-brand-deep transition hover:bg-brand-track/40'
                   }
                 >
                   {b}
@@ -94,7 +94,7 @@ export default function FeedbackForm({ cfg, sessionId, onSubmitted }: Props) {
         type="button"
         onClick={submit}
         disabled={busy}
-        className="flex items-center justify-center gap-1.5 rounded-full bg-brand-deep px-4 py-2.5 text-sm font-semibold text-brand-white transition hover:bg-brand-deep/90 disabled:opacity-60"
+        className="flex items-center justify-center gap-1.5 rounded-full bg-brand-deep px-4 py-2.5 text-sm font-semibold text-brand-white transition hover:bg-brand-ink disabled:opacity-60"
       >
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Submit feedback
       </button>

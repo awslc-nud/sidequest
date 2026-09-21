@@ -61,7 +61,7 @@ export default function ClaimFlow({ cfg, progress, sessionId, localPending, surv
             <button
               type="button"
               onClick={onOpenSurvey}
-              className="flex items-center justify-center gap-2 rounded-full bg-brand-accent px-4 py-3 text-sm font-semibold text-brand-ink transition hover:bg-brand-accent/90"
+              className="flex items-center justify-center gap-2 rounded-full bg-brand-deep px-4 py-3 text-sm font-semibold text-brand-white transition hover:bg-brand-ink"
             >
               <ClipboardList className="h-4 w-4" /> Take the survey
             </button>
@@ -72,8 +72,8 @@ export default function ClaimFlow({ cfg, progress, sessionId, localPending, surv
             onClick={() => setOpen(true)}
             className={
               claimReady
-                ? 'flex items-center justify-center gap-2 rounded-full bg-brand-deep px-4 py-3 text-sm font-semibold text-brand-white transition hover:bg-brand-deep/90'
-                : 'flex items-center justify-center gap-2 rounded-full border border-dashed border-brand-track px-4 py-3 text-sm text-brand-muted'
+                ? 'flex items-center justify-center gap-2 rounded-full bg-brand-deep px-4 py-3 text-sm font-semibold text-brand-white transition hover:bg-brand-ink'
+                : 'flex items-center justify-center gap-2 rounded-full border border-brand-track bg-brand-track/30 px-4 py-3 text-sm text-brand-muted'
             }
           >
             {!claimReady && localPending > 0 ? (
@@ -124,7 +124,7 @@ export default function ClaimFlow({ cfg, progress, sessionId, localPending, surv
                   setOpen(false);
                   setError(null);
                 }}
-                className="flex-1 rounded-full border border-brand-track px-4 py-2.5 text-sm font-medium text-brand-muted transition hover:bg-brand-bg"
+                className="flex-1 rounded-full border border-brand-track px-4 py-2.5 text-sm font-medium text-brand-deep transition hover:bg-brand-track/40"
               >
                 Cancel
               </button>
@@ -132,7 +132,7 @@ export default function ClaimFlow({ cfg, progress, sessionId, localPending, surv
                 type="button"
                 onClick={submit}
                 disabled={busy || !email.includes('@')}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-brand-deep px-4 py-2.5 text-sm font-semibold text-brand-white transition hover:bg-brand-deep/90 disabled:opacity-60"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-brand-deep px-4 py-2.5 text-sm font-semibold text-brand-white transition hover:bg-brand-ink disabled:opacity-60"
               >
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <BadgeCheck className="h-4 w-4" />} Mint pass
               </button>

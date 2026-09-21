@@ -84,7 +84,7 @@ export default function RewardPage({ loot }: Props) {
           <p className="text-sm text-brand-muted">Finish every quest to unlock the chest.</p>
           <a
             href="/"
-            className="mt-1 rounded-full bg-brand-deep px-4 py-2.5 text-sm font-semibold text-brand-white transition hover:bg-brand-deep/90"
+            className="mt-1 rounded-full bg-brand-deep px-4 py-2.5 text-sm font-semibold text-brand-white transition hover:bg-brand-ink"
           >
             Back to quests
           </a>
@@ -146,19 +146,23 @@ function PrizeArt({ item }: { item: LootItem }) {
   const [broken, setBroken] = useState(false);
 
   return (
-    <div className="flex flex-col items-center gap-4 rounded-3xl bg-brand-white p-6 text-center shadow-sm">
-      {item.image && !broken ? (
-        <img
-          src={item.image}
-          alt={item.label}
-          onError={() => setBroken(true)}
-          className="h-48 w-full max-w-xs object-contain"
-        />
-      ) : (
-        <span className="flex h-32 w-32 items-center justify-center rounded-2xl bg-brand-deep text-brand-white">
-          <Gift className="h-12 w-12" aria-hidden="true" />
-        </span>
-      )}
+    <div className="flex flex-col items-center gap-4 rounded-3xl bg-brand-white p-6 text-center shadow-sm ring-1 ring-brand-track/50">
+      <div className="relative flex h-48 w-full max-w-xs items-center justify-center">
+        {/* Soft halo so the prize reads as glowing rather than pasted on. */}
+        <span aria-hidden="true" className="absolute h-40 w-40 rounded-full bg-brand-accent/25 blur-2xl" />
+        {item.image && !broken ? (
+          <img
+            src={item.image}
+            alt={item.label}
+            onError={() => setBroken(true)}
+            className="relative h-48 w-full object-contain"
+          />
+        ) : (
+          <span className="relative flex h-32 w-32 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-deep to-brand-deep/85 text-brand-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
+            <Gift className="h-12 w-12" aria-hidden="true" />
+          </span>
+        )}
+      </div>
       <p className="text-lg font-bold text-brand-ink">{item.label}</p>
       {item.qty > 1 && <p className="text-sm text-brand-muted">Quantity: {item.qty}</p>}
     </div>
