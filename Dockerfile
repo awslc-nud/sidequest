@@ -13,13 +13,16 @@
 # ─────────────────────────────────────────────────────────────
 
 # ── Stage 1: build ───────────────────────────────────────────
-FROM node:22-bookworm-slim AS build
+# Node 24 ships npm 11, which is what generated package-lock.json (and what
+# understands the `allowScripts` field). npm 10's stricter `ci` rejects the
+# npm-11 lock's optional-peer resolution, so keep the majors aligned.
+FROM node:24-bookworm-slim AS build
 WORKDIR /app
 
-# better-sqlite3 ships prebuilds for Node 22, but keep a toolchain so the
-# build never fails if it has to compile from source.
+# better-sqlite3 ships prebuilds, but keep a toolchain so the build never fails
+# if it has to compile from source. `openssl` lets Prisma detect libssl.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends python3 make g++ ca-certificates \
+ && apt-get install -y --no-install-recommends python3 make g++ ca-certificates openssl \
  && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json ./
@@ -31,7 +34,7 @@ COPY . .
 RUN npx prisma generate && npm run build
 
 # ── Stage 2: runtime ─────────────────────────────────────────
-FROM node:22-bookworm-slim AS runtime
+FROM node:24-bookworm-slim AS runtime
 WORKDIR /app
 
 ENV NODE_ENV=production \
@@ -41,7 +44,7 @@ ENV NODE_ENV=production \
     SIDEQUEST_DATA_DIR=/data
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends ca-certificates \
+ && apt-get install -y --no-install-recommends ca-certificates openssl \
  && rm -rf /var/lib/apt/lists/*
 
 # App runtime. node_modules is copied wholesale because it carries the Prisma
