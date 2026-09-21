@@ -102,7 +102,7 @@ The SQLite DB and uploaded media persist in the `sidequest-data` volume. For the
 tunnel, point a Cloudflare Tunnel public hostname at `http://app:4321`.
 
 A GitHub Actions workflow (`.github/workflows/docker-publish.yml`) builds and
-publishes the image to `ghcr.io/<owner>/<repo>` on pushes to `main`/`master`
+publishes the image to `ghcr.io/<owner>/<repo>` on pushes to `main`
 (PRs build without pushing).
 
 ## Configuration

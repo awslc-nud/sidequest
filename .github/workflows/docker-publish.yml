@@ -6,10 +6,10 @@ name: Build and publish image
 # Actions tab, and `v*` tags produce versioned tags as well.
 on:
   push:
-    branches: [main, master]
+    branches: [main]
     tags: ["v*"]
   pull_request:
-    branches: [main, master]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
