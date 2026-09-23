@@ -24,6 +24,9 @@ function retryAfterSeconds(): string {
  * replay check → disk write (streamed, atomic) → DB transaction (§4.3).
  */
 export const POST: APIRoute = async ({ request, locals }) => {
+  console.log("Current Process ORIGIN:", process.env.ORIGIN);
+  console.log("Incoming Request Origin Header:", request.headers.get("origin"));
+  
   const cfg = getEventConfig();
   const prisma = await getPrisma();
 
