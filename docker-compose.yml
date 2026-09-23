@@ -1,24 +1,26 @@
-# SideQuest — two-container deploy: the app + an optional Cloudflare Tunnel.
+# SideQuest — the app + an optional Cloudflare Tunnel.
 #
-#   1. cp .env.example .env   and set MARSHAL_SECRET_KEY
-#   2. Create a Cloudflare Tunnel (Zero Trust dashboard), set its public
-#      hostname's service to http://app:4321, and put the tunnel token in
-#      CLOUDFLARE_TUNNEL_TOKEN in .env.
-#   3. Start it:
+#   1. cp .env.example .env and set MARSHAL_SECRET_KEY.
+#   2. Use `cloudflared tunnel login/create/route dns` to create a tunnel.
+#   3. Put config.yml and the tunnel's UUID.json in %USERPROFILE%\.cloudflared.
+#      In config.yml, use credentials-file: /etc/cloudflared/<UUID>.json and
+#      service: http://app:4321.
+#   4. Start it:
 #        docker compose up --build -d                  # app only (LAN)
 #        docker compose --profile tunnel up --build -d # app + tunnel (CGNAT)
 #
 # The SQLite DB and uploaded media persist in the `sidequest-data` volume.
 services:
   app:
-    build: .
-    image: sidequest:latest
+    # build: .
+    image: ghcr.io/awslc-nud/sidequest:latest
     restart: unless-stopped
     env_file:
       - .env
     environment:
       HOST: 0.0.0.0
       PORT: "4321"
+      ORIGIN: https://sidequest.awslcnud.org
       DATABASE_URL: file:/data/sidequest.db
       SIDEQUEST_DATA_DIR: /data
     volumes:
@@ -36,9 +38,14 @@ services:
     depends_on:
       app:
         condition: service_healthy
-    # Token is interpolated from .env on the host; the tunnel is outbound-only
-    # (no ports needed) and reaches the app at http://app:4321.
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    # Locally-managed tunnel config and credentials from the Windows host.
+    # Bind read-only; the config routes to the app over the Compose network.
+    command: ["tunnel", "--no-autoupdate", "--config", "/etc/cloudflared/config.yml", "run"]
+    volumes:
+      - type: bind
+        source: "./cloudflare"
+        target: /etc/cloudflared
+        read_only: true
 
 volumes:
   sidequest-data:
