@@ -1,6 +1,24 @@
 {
   "sections": [
   {
+    "title": "Basic Information",
+    "questions": [
+          {
+        "type": "text",
+        "label": "Full Name",
+        "placeholder": "Surname, First Name, Middle Name"
+      },
+          "questions": [
+          {
+        "type": "text",
+        "label": "Email",
+        "placeholder": "example@students.nu-dasma.edu.ph"
+      }
+    ]
+
+    ]
+  }
+  {
     "title": "Crafting and Comprehending Executive Orders and Resolutions",
     "questions": [
       { "type": "rating_1_4", "label": "Is the activity relevant/important to you?" },
