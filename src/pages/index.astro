@@ -1,13 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getEventConfig } from '../lib/config/loadEventConfig';
 import MissionsScreen from '../screens/MissionsScreen';
-
-const cfg = getEventConfig();
 ---
 
 <BaseLayout
-  title={cfg.event_name}
+  title="AWSLC-NUD | SideQuest"
   description="SideQuest — event photo quests"
   bodyClass="bg-brand-bg text-brand-ink antialiased"
 >
