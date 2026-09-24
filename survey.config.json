@@ -3,21 +3,20 @@
   {
     "title": "Basic Information",
     "questions": [
-          {
+      {
         "type": "text",
         "label": "Full Name",
         "placeholder": "Surname, First Name, Middle Name"
-      },
-          "questions": [
-          {
+      }
+    ],
+    "questions": [
+      {
         "type": "text",
         "label": "Email",
         "placeholder": "example@students.nu-dasma.edu.ph"
       }
     ]
-
-    ]
-  }
+  },
   {
     "title": "Crafting and Comprehending Executive Orders and Resolutions",
     "questions": [
