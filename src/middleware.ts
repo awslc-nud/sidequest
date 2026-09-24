@@ -4,6 +4,37 @@ import { ensureSessionId, requestIsSecure } from './lib/session';
 import { validateMarshal } from './lib/marshal';
 
 const MARSHAL_AUTH_PATH = '/marshal/auth';
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+const FORM_CONTENT_TYPES = [
+  'application/x-www-form-urlencoded',
+  'multipart/form-data',
+  'text/plain',
+];
+
+function isAllowedFormOrigin(request: Request, url: URL): boolean {
+  const method = request.method.toUpperCase();
+  if (SAFE_METHODS.has(method)) return true;
+
+  const contentType = request.headers.get('content-type')?.toLowerCase();
+  const needsOriginCheck = !contentType || FORM_CONTENT_TYPES.some((type) => contentType.includes(type));
+  if (!needsOriginCheck) return true;
+
+  const requestOrigin = request.headers.get('origin');
+  if (!requestOrigin) return false;
+
+  const allowedOrigins = new Set([url.origin]);
+  const configuredOrigin = process.env.ORIGIN;
+  if (configuredOrigin) {
+    try {
+      allowedOrigins.add(new URL(configuredOrigin).origin);
+    } catch {
+      // Ignore an invalid optional ORIGIN value; the request URL remains the
+      // only trusted origin in that case.
+    }
+  }
+
+  return allowedOrigins.has(requestOrigin);
+}
 
 /**
  * Global request middleware (§1.2 / §3.8 / T022 + T035):
@@ -20,6 +51,15 @@ const MARSHAL_AUTH_PATH = '/marshal/auth';
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, cookies, locals } = context;
   const { pathname } = new URL(url);
+
+  // Cloudflare terminates HTTPS before forwarding plain HTTP to this server,
+  // so Astro's built-in origin comparison sees the tunnel URL. Keep the same
+  // form-CSRF protection while also accepting the public ORIGIN from Compose.
+  if (!isAllowedFormOrigin(context.request, url)) {
+    return new Response(`Cross-site ${context.request.method} form submissions are forbidden`, {
+      status: 403,
+    });
+  }
 
   const isMarshalArea = pathname === '/marshal' || pathname.startsWith('/marshal/');
   const isMarshalAuth = pathname === MARSHAL_AUTH_PATH || pathname.startsWith(MARSHAL_AUTH_PATH + '/');

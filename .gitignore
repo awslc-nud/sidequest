@@ -17,6 +17,9 @@ pnpm-debug.log*
 .env
 .env.production
 
+# Cloudflare tunnel certificates and credentials
+.cloudflared/
+
 # local runtime data (SQLite db + uploaded media)
 data/
 

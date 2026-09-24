@@ -12,7 +12,7 @@
 # The SQLite DB and uploaded media persist in the `sidequest-data` volume.
 services:
   app:
-    # build: .
+    build: .
     image: ghcr.io/awslc-nud/sidequest:latest
     restart: unless-stopped
     env_file:

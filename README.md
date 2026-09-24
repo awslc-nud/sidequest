@@ -93,13 +93,22 @@ Cloudflare Tunnel so the site can be hosted from behind CGNAT with no
 port-forwarding.
 
 ```sh
-cp .env.example .env       # set MARSHAL_SECRET_KEY (+ CLOUDFLARE_TUNNEL_TOKEN)
-docker compose up --build -d                  # app only (LAN on :4321)
-docker compose --profile tunnel up --build -d # app + cloudflared tunnel
+cp .env.example .env       # set MARSHAL_SECRET_KEY
+docker compose up --build -d
 ```
 
-The SQLite DB and uploaded media persist in the `sidequest-data` volume. For the
-tunnel, point a Cloudflare Tunnel public hostname at `http://app:4321`.
+The SQLite DB and uploaded media persist in the `sidequest-data` volume. To use
+the tunnel from the Cloudflare CLI, run `cloudflared tunnel login`,
+`cloudflared tunnel create sidequest`, and
+`cloudflared tunnel route dns sidequest <hostname>`. Put `config.yml` and the
+tunnel's `<UUID>.json` credentials file in `%USERPROFILE%\.cloudflared`. In
+`config.yml`, point the hostname to `http://app:4321` and set
+`credentials-file` to `/etc/cloudflared/<UUID>.json`; Compose bind-mounts the
+directory there read-only. Start the optional connector with:
+
+```sh
+docker compose --profile tunnel up -d
+```
 
 A GitHub Actions workflow (`.github/workflows/docker-publish.yml`) builds and
 publishes the image to `ghcr.io/<owner>/<repo>` on pushes to `main`
