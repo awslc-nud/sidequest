@@ -5,9 +5,10 @@ import { getEventConfig } from '../../lib/config/loadEventConfig';
 import { getPrisma } from '../../lib/db/client';
 import { Prisma } from '../../lib/db/client';
 import { requireValidSession } from '../../lib/api/requireSession';
-import { apiError, json } from '../../lib/api/http';
+import { apiError, json, readBodyBytes } from '../../lib/api/http';
 import { uploadAdmissionQueue } from '../../lib/uploadAdmission/admissionQueue';
-import { writeUpload, ensureDir } from '../../lib/storage/writeUpload';
+import { writeUpload, ensureDir, deleteStoredUpload } from '../../lib/storage/writeUpload';
+import { rateLimit } from '../../lib/rateLimit';
 import { computeProgress } from '../../lib/progress/computeProgress';
 import { dataDir, MAX_REQUEST_BYTES, MAX_UPLOAD_BYTES } from '../../lib/env';
 import { nowMs } from '../../lib/time';
@@ -24,21 +25,22 @@ function retryAfterSeconds(): string {
  * replay check → disk write (streamed, atomic) → DB transaction (§4.3).
  */
 export const POST: APIRoute = async ({ request, locals }) => {
-  console.log("Current Process ORIGIN:", process.env.ORIGIN);
-  console.log("Incoming Request Origin Header:", request.headers.get("origin"));
-  
   const cfg = getEventConfig();
   const prisma = await getPrisma();
 
   // ── body ceiling (defense in depth alongside the 2MB file check) ──
-  const contentLength = Number(request.headers.get('content-length') ?? '0');
-  if (contentLength > MAX_REQUEST_BYTES) {
+  // Streams and counts bytes itself, so a missing/forged Content-Length or a
+  // chunked body can't sneak past the multipart limit.
+  const rawBody = await readBodyBytes(request, MAX_REQUEST_BYTES);
+  if (rawBody === null) {
     return apiError('PAYLOAD_TOO_LARGE', 'request body exceeds the configured multipart limit', 413);
   }
 
   let form: FormData;
   try {
-    form = await request.formData();
+    form = await new Response(new Blob([rawBody]), {
+      headers: { 'content-type': request.headers.get('content-type') ?? '' },
+    }).formData();
   } catch {
     return apiError('INVALID_REQUEST', 'unable to parse multipart body', 400);
   }
@@ -65,6 +67,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
   if (file.size > MAX_UPLOAD_BYTES) {
     return apiError('FILE_TOO_LARGE', `file exceeds ${MAX_UPLOAD_BYTES} byte ceiling`, 400);
   }
+  // The multipart Content-Type above is client-supplied; confirm the bytes are
+  // really a WebP container (RIFF....WEBP) so arbitrary payloads can't be stored
+  // with a trusted-looking extension. Header-only check — no image library.
+  const magic = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const isWebp =
+    magic.length >= 12 &&
+    magic[0] === 0x52 && magic[1] === 0x49 && magic[2] === 0x46 && magic[3] === 0x46 && // "RIFF"
+    magic[8] === 0x57 && magic[9] === 0x45 && magic[10] === 0x42 && magic[11] === 0x50; // "WEBP"
+  if (!isWebp) {
+    return apiError('INVALID_CONTENT_TYPE', 'file is not a valid WebP image', 400);
+  }
 
   // ── session + chest gate ──
   const sessionResult = await requireValidSession({
@@ -83,6 +96,14 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const quest = cfg.quests.find((q) => q.id === prompt_id);
   if (!quest) {
     return apiError('INVALID_PROMPT_ID', `unknown prompt_id ${prompt_id}`, 400);
+  }
+
+  // ── rate limit per session (bounds disk/DB churn from re-upload loops) ──
+  const limited = rateLimit(`upload:${session.id}`, 60, 60_000);
+  if (!limited.ok) {
+    return apiError('RATE_LIMITED', 'too many uploads; please slow down', 429, {
+      'retry-after': String(limited.retryAfterSeconds),
+    });
   }
 
   // ── Admission Queue ──
@@ -113,6 +134,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
         200,
       );
     }
+
+    // A retake for a prompt we already hold: remember the previous file so it
+    // can be deleted once the new row commits (prevents orphaned-file disk fill).
+    const prior = await prisma.submission.findUnique({
+      where: { sessionId_promptId: { sessionId: session.id, promptId: prompt_id } },
+    });
 
     // ── disk write (must succeed before the DB row commits) ──
     const destDir = path.join(dataDir(), 'uploads', cfg.event_slug, prompt_id);
@@ -157,6 +184,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
       if (!progress) {
         return apiError('SESSION_NOT_FOUND', 'session not found', 404);
+      }
+      if (prior && prior.filePath !== relPath) {
+        await deleteStoredUpload(prior.filePath);
       }
       return json(
         {

@@ -2,6 +2,7 @@ import { defineMiddleware } from 'astro:middleware';
 import { getPrisma } from './lib/db/client';
 import { ensureSessionId, requestIsSecure } from './lib/session';
 import { validateMarshal } from './lib/marshal';
+import { MAX_REQUEST_BYTES } from './lib/env';
 
 const MARSHAL_AUTH_PATH = '/marshal/auth';
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
@@ -11,6 +12,32 @@ const FORM_CONTENT_TYPES = [
   'text/plain',
 ];
 
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "media-src 'self' blob:",
+  "font-src 'self' data:",
+  "connect-src 'self' ws: wss:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join('; ');
+
+/** Defense-in-depth headers for every response (HTML and API alike). */
+function withSecurityHeaders(response: Response, secure: boolean): Response {
+  const headers = response.headers;
+  headers.set('x-content-type-options', 'nosniff');
+  headers.set('x-frame-options', 'DENY');
+  headers.set('referrer-policy', 'no-referrer');
+  headers.set('permissions-policy', 'camera=(self), microphone=(), geolocation=()');
+  headers.set('content-security-policy', CSP);
+  if (secure) headers.set('strict-transport-security', 'max-age=31536000; includeSubDomains');
+  return response;
+}
+
 function isAllowedFormOrigin(request: Request, url: URL): boolean {
   const method = request.method.toUpperCase();
   if (SAFE_METHODS.has(method)) return true;
@@ -19,20 +46,33 @@ function isAllowedFormOrigin(request: Request, url: URL): boolean {
   const needsOriginCheck = !contentType || FORM_CONTENT_TYPES.some((type) => contentType.includes(type));
   if (!needsOriginCheck) return true;
 
-  const requestOrigin = request.headers.get('origin');
-  if (!requestOrigin) return false;
+  // `Sec-Fetch-Site` is the most reliable CSRF signal: every current browser
+  // (Chromium/Firefox/Safari 16.4+) sends it, crucially including on same-origin
+  // form POSTs where older iOS Safari omits `Origin`. A forged cross-site form
+  // submission is always tagged `cross-site`.
+  const fetchSite = request.headers.get('sec-fetch-site');
+  if (fetchSite === 'cross-site') return false;
+  if (fetchSite === 'same-origin' || fetchSite === 'none') return true;
 
-  const allowedOrigins = new Set([url.origin]);
+  // Fall back to `Origin` for older browsers. Accept the public `ORIGIN`
+  // configured for the tunnel as well as the request's own origin.
+  const requestOrigin = request.headers.get('origin');
+  if (!requestOrigin) {
+    // No signal at all (very old browser). State-changing requests remain
+    // protected by SameSite cookies (Lax for attendees, Strict for marshals),
+    // so allow rather than break legitimate form posts.
+    return true;
+  }
+
+  const allowedOrigins = new Set<string>([url.origin]);
   const configuredOrigin = process.env.ORIGIN;
   if (configuredOrigin) {
     try {
       allowedOrigins.add(new URL(configuredOrigin).origin);
     } catch {
-      // Ignore an invalid optional ORIGIN value; the request URL remains the
-      // only trusted origin in that case.
+      // Ignore an invalid optional ORIGIN value; the request URL remains trusted.
     }
   }
-
   return allowedOrigins.has(requestOrigin);
 }
 
@@ -51,14 +91,31 @@ function isAllowedFormOrigin(request: Request, url: URL): boolean {
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, cookies, locals } = context;
   const { pathname } = new URL(url);
+  const secure = requestIsSecure(url, context.request.headers);
+
+  // Coarse ceiling on every mutating request, including endpoints that never
+  // read a body (e.g. /api/session). Fine-grained limits are enforced per route.
+  if (!SAFE_METHODS.has(context.request.method.toUpperCase())) {
+    const declared = Number(context.request.headers.get('content-length') ?? '0');
+    if (Number.isFinite(declared) && declared > MAX_REQUEST_BYTES) {
+      return withSecurityHeaders(
+        new Response(JSON.stringify({ error: { code: 'PAYLOAD_TOO_LARGE', message: 'request body too large' } }), {
+          status: 413,
+          headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
+        }),
+        secure,
+      );
+    }
+  }
 
   // Cloudflare terminates HTTPS before forwarding plain HTTP to this server,
   // so Astro's built-in origin comparison sees the tunnel URL. Keep the same
   // form-CSRF protection while also accepting the public ORIGIN from Compose.
   if (!isAllowedFormOrigin(context.request, url)) {
-    return new Response(`Cross-site ${context.request.method} form submissions are forbidden`, {
-      status: 403,
-    });
+    return withSecurityHeaders(
+      new Response(`Cross-site ${context.request.method} form submissions are forbidden`, { status: 403 }),
+      secure,
+    );
   }
 
   const isMarshalArea = pathname === '/marshal' || pathname.startsWith('/marshal/');
@@ -72,14 +129,17 @@ export const onRequest = defineMiddleware(async (context, next) => {
       if (!identity) {
         locals.isMarshal = false;
         if (isMarshalApi) {
-          return new Response(
-            JSON.stringify({
-              error: { code: 'MARSHAL_UNAUTHENTICATED', message: 'Marshal session missing or expired' },
-            }),
-            { status: 401, headers: { 'content-type': 'application/json' } },
+          return withSecurityHeaders(
+            new Response(
+              JSON.stringify({
+                error: { code: 'MARSHAL_UNAUTHENTICATED', message: 'Marshal session missing or expired' },
+              }),
+              { status: 401, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } },
+            ),
+            secure,
           );
         }
-        return context.redirect(MARSHAL_AUTH_PATH, 302);
+        return withSecurityHeaders(context.redirect(MARSHAL_AUTH_PATH, 302), secure);
       }
       locals.isMarshal = true;
       locals.marshalLabel = identity.label;
@@ -89,7 +149,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   // Attendee session cookie: present on every page/endpoint response.
-  locals.sessionId = ensureSessionId(cookies, requestIsSecure(url, context.request.headers));
+  locals.sessionId = ensureSessionId(cookies, secure);
 
-  return next();
+  return withSecurityHeaders(await next(), secure);
 });

@@ -58,6 +58,11 @@ export function eventConfigPath(): string {
   return path.resolve(process.cwd(), envStr('EVENT_CONFIG_PATH', 'event.config.json'));
 }
 
+/** Absolute path of the directory holding the editable terms text files. */
+export function termsDir(): string {
+  return path.resolve(process.cwd(), envStr('TERMS_DIR', 'terms'));
+}
+
 /** Marshal shared static passphrase (empty => marshal auth always fails closed). */
 export function marshalSecretKey(): string {
   return envStr('MARSHAL_SECRET_KEY', '');
@@ -75,6 +80,16 @@ export function uploadQueueDepth(): number {
 /** Test-only override that bypasses the Admission Queue (see §5.2 WAL smoke test). */
 export function uploadQueueDisabled(): boolean {
   return envBool('SIDEQUEST_UPLOAD_QUEUE_DISABLED');
+}
+
+/** Max bytes accepted on JSON API bodies (claim/feedback/redeem). */
+export function jsonBodyLimitBytes(): number {
+  return envInt('JSON_BODY_LIMIT_BYTES', 64 * 1024);
+}
+
+/** Test-only override that disables the in-process rate limiter. */
+export function rateLimitDisabled(): boolean {
+  return envBool('SIDEQUEST_RATE_LIMIT_DISABLED');
 }
 
 /** Attendee + marshal cookie lifetime in seconds. */

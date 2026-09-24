@@ -3,7 +3,8 @@ import { getEventConfig } from '../../lib/config/loadEventConfig';
 import { getPrisma } from '../../lib/db/client';
 import { mintSessionCookie, readSessionId, requestIsSecure, setSessionCookie } from '../../lib/session';
 import { nowMs } from '../../lib/time';
-import { json } from '../../lib/api/http';
+import { json, apiError } from '../../lib/api/http';
+import { rateLimit, clientIp } from '../../lib/rateLimit';
 
 /**
  * POST /api/session — idempotent anonymous session mint/resume (§3.2).
@@ -14,7 +15,14 @@ import { json } from '../../lib/api/http';
  * row for this event it is resumed (`200`); otherwise a fresh row is created
  * and the cookie (re)set (`201`).
  */
-export const POST: APIRoute = async ({ cookies, url, request }) => {
+export const POST: APIRoute = async ({ cookies, url, request, clientAddress }) => {
+  const limited = rateLimit(`session:${clientIp(request, clientAddress)}`, 30, 60_000);
+  if (!limited.ok) {
+    return apiError('RATE_LIMITED', 'too many session requests; please slow down', 429, {
+      'retry-after': String(limited.retryAfterSeconds),
+    });
+  }
+
   const cfg = getEventConfig();
   const prisma = await getPrisma();
   const secure = requestIsSecure(url, request.headers);

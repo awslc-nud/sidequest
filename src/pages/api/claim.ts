@@ -2,7 +2,8 @@ import type { APIRoute } from 'astro';
 import { getEventConfig } from '../../lib/config/loadEventConfig';
 import { getPrisma } from '../../lib/db/client';
 import { requireValidSession } from '../../lib/api/requireSession';
-import { apiError, json, readJson } from '../../lib/api/http';
+import { apiError, json, readJson, BodyTooLargeError } from '../../lib/api/http';
+import { rateLimit } from '../../lib/rateLimit';
 import { nowMs } from '../../lib/time';
 import { validateEmail } from '../../lib/validation/email';
 import { generateClaimToken, generateShortCode } from '../../lib/tokens/claimToken';
@@ -23,7 +24,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const cfg = getEventConfig();
   const prisma = await getPrisma();
 
-  const body = await readJson(request);
+  let body: unknown;
+  try {
+    body = await readJson(request);
+  } catch (e) {
+    if (e instanceof BodyTooLargeError) return apiError('PAYLOAD_TOO_LARGE', 'request body too large', 413);
+    throw e;
+  }
   const parsed = claimBodySchema.safeParse(body);
   if (!parsed.success) {
     return apiError('INVALID_BODY', 'invalid claim payload', 400);
@@ -38,6 +45,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
   });
   if (!sessionResult.ok) return sessionResult.response;
   const session = sessionResult.session;
+
+  const limited = rateLimit(`claim:${session.id}`, 10, 60_000);
+  if (!limited.ok) {
+    return apiError('RATE_LIMITED', 'too many attempts; please slow down', 429, {
+      'retry-after': String(limited.retryAfterSeconds),
+    });
+  }
 
   if (session.unlockedAt === null) {
     return apiError('CHEST_NOT_UNLOCKED', 'complete all tasks before claiming your pass', 400);

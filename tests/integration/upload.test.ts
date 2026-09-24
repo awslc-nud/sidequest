@@ -101,6 +101,17 @@ describe('POST /api/upload (§3.3/§4.3)', () => {
     expect((await res.json()).error.code).toBe('INVALID_CONTENT_TYPE');
   });
 
+  it('rejects bytes spoofed as image/webp (magic-byte check)', async () => {
+    const { client, sessionId } = await ApiClient.newSession(server.baseUrl);
+    const spoof = new Blob([new TextEncoder().encode('<html><script>alert(1)</script>')], {
+      type: 'image/webp',
+    });
+    const res = await upload(client, sessionId, 'prompt_1_arrival', randomUUID(), spoof);
+    expect(res.status).toBe(400);
+    expect((await res.json()).error.code).toBe('INVALID_CONTENT_TYPE');
+    expect(filesForSession(sessionId, 'prompt_1_arrival')).toHaveLength(0);
+  });
+
   it('rejects an unknown prompt_id and a mismatched session', async () => {
     const { client, sessionId } = await ApiClient.newSession(server.baseUrl);
     const badPrompt = await upload(client, sessionId, 'prompt_nope', randomUUID(), webpBlob(1024));
@@ -132,6 +143,19 @@ describe('POST /api/upload (§3.3/§4.3)', () => {
     expect(filesForSession(sessionId, 'prompt_1_arrival')[0]).toMatch(new RegExp(`^${sessionId}_\\d+\\.webp$`));
     // dirs are under the event slug root
     expect(path.relative(uploadDir(server, '..'), d1)).toContain('tech-summit-2026');
+  });
+
+  it('deletes the previous file on a retake (no orphaned uploads)', async () => {
+    const { client, sessionId } = await ApiClient.newSession(server.baseUrl);
+    const first = await upload(client, sessionId, 'prompt_1_arrival', randomUUID(), webpBlob(1024));
+    expect(first.status).toBe(201);
+    expect(filesForSession(sessionId, 'prompt_1_arrival')).toHaveLength(1);
+
+    await new Promise((r) => setTimeout(r, 5)); // distinct timestamp → distinct filename
+    const retake = await upload(client, sessionId, 'prompt_1_arrival', randomUUID(), webpBlob(1024));
+    expect([200, 201]).toContain(retake.status);
+    expect(filesForSession(sessionId, 'prompt_1_arrival')).toHaveLength(1);
+    expect(submissionsFor(sessionId)).toBe(1);
   });
 
   it('rejects uploads after the chest is unlocked with 409 CHEST_ALREADY_UNLOCKED', async () => {

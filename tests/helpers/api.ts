@@ -76,9 +76,16 @@ export class ApiClient {
   }
 }
 
-/** Build an image/webp blob of an arbitrary byte size for fixture uploads. */
+/**
+ * Build an image/webp blob of an arbitrary byte size for fixture uploads. The
+ * first 12 bytes carry a real `RIFF....WEBP` magic so the server's content
+ * sniffing accepts it; the rest is zero padding.
+ */
 export function webpBlob(size: number): Blob {
-  return new Blob([new Uint8Array(size)], { type: 'image/webp' });
+  const bytes = new Uint8Array(size);
+  const magic = [0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50];
+  for (let i = 0; i < magic.length && i < bytes.length; i += 1) bytes[i] = magic[i];
+  return new Blob([bytes], { type: 'image/webp' });
 }
 
 export function pngBlob(size = 1024): Blob {

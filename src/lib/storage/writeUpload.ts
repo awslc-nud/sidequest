@@ -4,6 +4,7 @@ import path from 'node:path';
 import { Readable } from 'node:stream';
 import type { ReadableStream as NodeWebReadableStream } from 'node:stream/web';
 import { pipeline } from 'node:stream/promises';
+import { dataDir } from '../env';
 
 export class StorageWriteError extends Error {
   constructor(message: string, readonly cause?: unknown) {
@@ -25,6 +26,18 @@ function toNodeStream(source: WriteSource): NodeJS.ReadableStream {
 /** Recursively ensure a directory exists. */
 export async function ensureDir(dir: string): Promise<void> {
   await fsp.mkdir(dir, { recursive: true });
+}
+
+/**
+ * Delete a previously stored upload by its DB `file_path` (a POSIX relative
+ * path). Refuses to touch anything that resolves outside the data directory, so
+ * a corrupt/hostile DB value can never become an arbitrary-file-delete.
+ */
+export async function deleteStoredUpload(relPath: string): Promise<void> {
+  const root = dataDir();
+  const abs = path.resolve(root, ...relPath.split('/'));
+  if (abs !== root && !abs.startsWith(root + path.sep)) return;
+  await fsp.unlink(abs).catch(() => undefined);
 }
 
 /**

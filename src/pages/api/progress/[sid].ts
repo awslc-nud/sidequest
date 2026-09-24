@@ -10,9 +10,16 @@ import { apiError, json, num } from '../../../lib/api/http';
  * The server's submission list is canonical for the completed/K count. When a
  * claim already exists for the session it is embedded as a sub-object.
  */
-export const GET: APIRoute = async ({ params }) => {
+export const GET: APIRoute = async ({ params, locals }) => {
   const sid = params.sid as string | undefined;
   if (!sid) return apiError('SESSION_NOT_FOUND', 'session not found', 404);
+
+  // Object-level authorization: the URL id must be the caller's own cookie-bound
+  // session, otherwise the response would leak the session's claim token/QR to
+  // anyone who learns a session UUID. 404 (not 403) avoids id enumeration.
+  if (locals.sessionId !== sid) {
+    return apiError('SESSION_NOT_FOUND', 'session not found', 404);
+  }
 
   const cfg = getEventConfig();
   const prisma = await getPrisma();
