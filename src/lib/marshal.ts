@@ -6,6 +6,9 @@ import { sessionMaxAgeSeconds, marshalSecretKey } from './env';
 import { nowMs, nowMsBigInt } from './time';
 import type { MarshalSession } from './db/client';
 
+/** Cap on the optional human marshal label (arbitrary client input). */
+export const MAX_MARSHAL_LABEL_LENGTH = 40;
+
 /** Hash-then-compare so both sides always have equal length (constant-time). */
 export function constantTimeEqual(a: string, b: string): boolean {
   const ha = createHash('sha256').update(a, 'utf8').digest();
@@ -44,12 +47,13 @@ export async function createMarshalSession(
 ): Promise<MarshalSession> {
   const now = nowMs();
   const token = randomBytes(32).toString('hex');
+  const label = opts.label?.trim().slice(0, MAX_MARSHAL_LABEL_LENGTH) || null;
   const row = await prisma.marshalSession.create({
     data: {
       token,
       createdAt: BigInt(now),
       expiresAt: BigInt(now + sessionMaxAgeSeconds() * 1000),
-      label: opts.label?.trim() ? opts.label.trim() : null,
+      label,
     },
   });
   cookies.set(MARSHAL_COOKIE, token, cookieOptions(sessionMaxAgeSeconds(), 'strict', opts.secure ?? true));

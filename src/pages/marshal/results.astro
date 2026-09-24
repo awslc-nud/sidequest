@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getEventConfig } from '../../lib/config/loadEventConfig';
+import FeedbackResults from '../../components/react/FeedbackResults';
+
+export const prerender = false;
+
+const cfg = getEventConfig();
+const label = Astro.locals.marshalLabel ?? null;
+---
+
+<BaseLayout title="Survey results">
+  <main class="mx-auto flex min-h-screen w-full max-w-md flex-col gap-6 px-4 py-8">
+    <header class="flex items-center justify-between">
+      <div class="flex flex-col gap-1">
+        <p class="text-xs uppercase tracking-widest text-zinc-500">{cfg.event_name}</p>
+        <h1 class="text-2xl font-semibold">Survey results</h1>
+      </div>
+      {label && <span class="text-sm text-zinc-400">{label}</span>}
+    </header>
+
+    <FeedbackResults client:load />
+
+    <a href="/marshal" class="text-center text-xs text-zinc-500 transition hover:text-zinc-300">
+      ← Back to scanner
+    </a>
+  </main>
+</BaseLayout>

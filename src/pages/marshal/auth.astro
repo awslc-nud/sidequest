@@ -4,6 +4,7 @@ import { getEventConfig } from '../../lib/config/loadEventConfig';
 import { createMarshalSession, isMarshalSecret, validateMarshal } from '../../lib/marshal';
 import { requestIsSecure } from '../../lib/session';
 import { getPrisma } from '../../lib/db/client';
+import { rateLimit, clientIp } from '../../lib/rateLimit';
 
 export const prerender = false;
 
@@ -11,18 +12,24 @@ const method = Astro.request.method;
 let error: string | null = null;
 
 if (method === 'POST') {
-  const form = await Astro.request.formData().catch(() => null);
-  const passphrase = String(form?.get('passphrase') ?? '');
-  const label = String(form?.get('label') ?? '');
-  if (isMarshalSecret(passphrase)) {
-    await createMarshalSession(Astro.cookies, await getPrisma(), {
-      label,
-      secure: requestIsSecure(Astro.url, Astro.request.headers),
-    });
-    return Astro.redirect('/marshal', 302);
+  const limited = rateLimit(`marshal-auth:${clientIp(Astro.request)}`, 10, 5 * 60_000);
+  if (!limited.ok) {
+    Astro.response.status = 429;
+    error = 'Too many attempts. Please wait a few minutes and try again.';
+  } else {
+    const form = await Astro.request.formData().catch(() => null);
+    const passphrase = String(form?.get('passphrase') ?? '');
+    const label = String(form?.get('label') ?? '');
+    if (isMarshalSecret(passphrase)) {
+      await createMarshalSession(Astro.cookies, await getPrisma(), {
+        label,
+        secure: requestIsSecure(Astro.url, Astro.request.headers),
+      });
+      return Astro.redirect('/marshal', 302);
+    }
+    Astro.response.status = 403;
+    error = 'Incorrect passphrase. Please try again.';
   }
-  Astro.response.status = 403;
-  error = 'Incorrect passphrase. Please try again.';
 } else {
   // Already signed in? Send them straight to the scanner.
   const existing = await validateMarshal(Astro.cookies, await getPrisma());
@@ -60,6 +67,7 @@ const cfg = getEventConfig();
         <input
           name="label"
           type="text"
+          maxlength="40"
           placeholder="e.g. North Gate"
           class="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-zinc-100 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
         />

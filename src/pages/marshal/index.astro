@@ -16,13 +16,16 @@ const label = Astro.locals.marshalLabel ?? null;
         <p class="text-xs uppercase tracking-widest text-zinc-500">{cfg.event_name}</p>
         <h1 class="text-2xl font-semibold">Marshal scanner</h1>
       </div>
-      {label && <span class="text-sm text-zinc-400">{label}</span>}
+      <div class="flex flex-col items-end gap-1">
+        {label && <span class="text-sm text-zinc-400">{label}</span>}
+        <a href="/marshal/results" class="text-xs text-zinc-400 underline transition hover:text-zinc-200">Survey results</a>
+      </div>
     </header>
 
     <MarshalApp client:load />
 
     <p class="text-center text-xs text-zinc-600">
-      Camera QR scanning lands in the feature pass — use the manual entry to test redemption now.
+      Camera scanning needs HTTPS (or localhost) and camera permission. The code entry below always works.
     </p>
   </main>
 </BaseLayout>

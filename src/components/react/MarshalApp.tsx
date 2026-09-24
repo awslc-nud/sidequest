@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, Scan, XCircle } from 'lucide-react';
+import { CheckCircle2, XCircle } from 'lucide-react';
 import { postJson, type ErrorBody } from '../../client/http';
+import QrScanner from './QrScanner';
 
 interface Result {
   kind: 'ok' | 'conflict' | 'error';
@@ -65,15 +66,8 @@ export default function MarshalApp() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Scanner viewfinder — camera capture lands here in the feature pass */}
-      <section
-        id="scanner-slot"
-        aria-label="Claim scanner"
-        className="relative flex aspect-square items-center justify-center overflow-hidden rounded-xl border border-dashed border-zinc-700 bg-zinc-900/40"
-        data-asset="marshal-scanner"
-      >
-        <Scan className="h-16 w-16 text-zinc-600" />
-      </section>
+      {/* Live camera viewfinder — scanning is paused while a redeem is in flight */}
+      <QrScanner paused={busy} onScan={(data) => void redeem(data)} />
 
       {/* Manual fallback entry */}
       <section aria-label="Manual entry" className="flex flex-col gap-2 rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">

@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getEventConfig } from '../../../lib/config/loadEventConfig';
 import { getPrisma } from '../../../lib/db/client';
-import { apiError, json, num, readJson } from '../../../lib/api/http';
+import { apiError, json, num, readJson, BodyTooLargeError } from '../../../lib/api/http';
+import { rateLimit, clientIp } from '../../../lib/rateLimit';
 import { nowMs, isoFormat } from '../../../lib/time';
 import { redeemBodySchema } from '../../../lib/validation/payloads';
 
@@ -16,14 +17,27 @@ import { redeemBodySchema } from '../../../lib/validation/payloads';
  * false`): SQLite serializes writers, so of two concurrent scans only one flips
  * the row; the loser's predicate matches zero rows deterministically.
  */
-export const POST: APIRoute = async ({ request, locals }) => {
+export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
   if (locals.isMarshal !== true) {
     return apiError('MARSHAL_UNAUTHENTICATED', 'Marshal session missing or expired', 401);
   }
 
+  const limited = rateLimit(`redeem:${clientIp(request, clientAddress)}`, 60, 60_000);
+  if (!limited.ok) {
+    return apiError('RATE_LIMITED', 'too many redemption attempts; please slow down', 429, {
+      'retry-after': String(limited.retryAfterSeconds),
+    });
+  }
+
   const prisma = await getPrisma();
   const cfg = getEventConfig();
-  const body = await readJson(request);
+  let body: unknown;
+  try {
+    body = await readJson(request);
+  } catch (e) {
+    if (e instanceof BodyTooLargeError) return apiError('PAYLOAD_TOO_LARGE', 'request body too large', 413);
+    throw e;
+  }
   const parsed = redeemBodySchema.safeParse(body);
   if (!parsed.success) {
     return apiError('MISSING_TOKEN', 'exactly one of claim_token or short_code is required', 400);
