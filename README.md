@@ -127,10 +127,8 @@ Everything event-specific lives in `event.config.json`:
   "allowed_email_domain": "school.edu.ph",
   "feedback_keystone": {
     "enabled": true,
-    "questions": [
-      { "id": "q1", "type": "rating_1_5", "label": "How was the event?" },
-      { "id": "q2", "type": "text", "label": "Any suggestions?" }
-    ]
+    // Inline `sections`/`questions`, or point at a separate survey file:
+    "survey_file": "survey.config.json"
   },
   "loot": [
     { "id": "tardigrade_pin", "label": "1x Tardigrade Pin", "qty": 1, "image": "/assets/prize.png" }
@@ -143,6 +141,12 @@ Everything event-specific lives in `event.config.json`:
 
 Quest and loot `id`s must be lowercase `[a-z0-9_]`. Prize/quest art lives in
 `public/assets/`.
+
+The survey can live in its own `survey.config.json`, referenced by
+`feedback_keystone.survey_file` (resolved relative to the event config). That
+file accepts `sections` (groups with optional `title`/`description`) or a flat
+`questions` list. Question and section ids are optional — they're auto-assigned
+(`q1`, `s1`, …) when omitted.
 
 ## Scripts
 

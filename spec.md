@@ -343,7 +343,7 @@ Loaded once at server boot (hot-reloadable via file-watch in dev) and validated 
   "feedback_keystone": {
     "enabled": true,
     "questions": [
-      { "id": "q1", "type": "rating_1_5", "label": "How was the event?" },
+      { "id": "q1", "type": "rating_1_4", "label": "How was the event?" },
       { "id": "q2", "type": "text", "label": "Any suggestions?" }
     ]
   },
@@ -378,7 +378,7 @@ export const LootItemSchema = z.object({
 
 export const FeedbackQuestionSchema = z.object({
   id: z.string(),
-  type: z.enum(["rating_1_5", "text", "boolean"]),
+  type: z.enum(["rating_1_4", "text", "boolean"]),
   label: z.string(),
 });
 
