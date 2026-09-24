@@ -25,7 +25,7 @@ async function mintClaim(): Promise<{ claimToken: string; shortCode: string }> {
     });
     expect([200, 201]).toContain(res.status);
   }
-  await client.postJson('/api/feedback', { session_id: sessionId, answers: { q1: 5, q2: 'ok' } });
+  await client.postJson('/api/feedback', { session_id: sessionId, answers: { q1: 4, q2: 'ok' } });
   const claim = await client.postJson('/api/claim', {
     session_id: sessionId,
     student_email: `${randomUUID().slice(0, 8)}@school.edu.ph`,

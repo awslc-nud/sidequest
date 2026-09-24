@@ -3,7 +3,8 @@ import { getEventConfig } from '../../lib/config/loadEventConfig';
 import type { EventConfig } from '../../lib/config/schema';
 import { getPrisma } from '../../lib/db/client';
 import { requireValidSession } from '../../lib/api/requireSession';
-import { apiError, json, readJson } from '../../lib/api/http';
+import { apiError, json, readJson, BodyTooLargeError } from '../../lib/api/http';
+import { rateLimit } from '../../lib/rateLimit';
 import { computeProgress } from '../../lib/progress/computeProgress';
 import { nowMs } from '../../lib/time';
 import { feedbackBodySchema } from '../../lib/validation/payloads';
@@ -14,8 +15,8 @@ function validateAnswers(cfg: EventConfig, answers: Record<string, unknown>): { 
   for (const [id, value] of Object.entries(answers)) {
     const q = byId.get(id);
     if (!q) return { ok: false, message: `unknown question id: ${id}` };
-    if (q.type === 'rating_1_5' && (!Number.isInteger(value) || (value as number) < 1 || (value as number) > 5)) {
-      return { ok: false, message: `question ${id} expects a rating from 1 to 5` };
+    if (q.type === 'rating_1_4' && (!Number.isInteger(value) || (value as number) < 1 || (value as number) > 4)) {
+      return { ok: false, message: `question ${id} expects a rating from 1 to 4` };
     }
     if (q.type === 'text' && typeof value !== 'string') return { ok: false, message: `question ${id} expects text` };
     if (q.type === 'boolean' && typeof value !== 'boolean') return { ok: false, message: `question ${id} expects a boolean` };
@@ -25,18 +26,25 @@ function validateAnswers(cfg: EventConfig, answers: Record<string, unknown>): { 
 
 /**
  * POST /api/feedback — submit the keystone survey (§3.5).
- * Accepted only once feedback is enabled in config AND all photo prompts are complete.
+ * Accepted whenever feedback is enabled in config (the photo quests do **not**
+ * have to be complete).
  *
- * The survey is a **separate post-quest step**: it is recorded and gates the
- * claim (see `/api/claim`), but it does not count towards progress or the chest
- * unlock (product decision — see `docs/ui-build.md` #29). This endpoint is shared
- * by the attendee modal and the standalone `/survey` form.
+ * The survey is recorded independently of quest progress: it gates the claim
+ * (see `/api/claim`) but does not count towards progress or the chest unlock
+ * (product decision — see `docs/ui-build.md` #29). This endpoint is shared by the
+ * attendee modal and the standalone `/survey` form.
  */
 export const POST: APIRoute = async ({ request, locals }) => {
   const cfg = getEventConfig();
   const prisma = await getPrisma();
 
-  const body = await readJson(request);
+  let body: unknown;
+  try {
+    body = await readJson(request);
+  } catch (e) {
+    if (e instanceof BodyTooLargeError) return apiError('PAYLOAD_TOO_LARGE', 'request body too large', 413);
+    throw e;
+  }
   const parsed = feedbackBodySchema.safeParse(body);
   if (!parsed.success) {
     return apiError('INVALID_BODY', 'invalid feedback payload', 400);
@@ -56,14 +64,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
   if (!sessionResult.ok) return sessionResult.response;
   const session = sessionResult.session;
 
-  const submissions = await prisma.submission.findMany({
-    where: { sessionId: session.id },
-    select: { promptId: true },
-  });
-  const completedPrompts = new Set(submissions.map((s) => s.promptId));
-  const allPromptsDone = cfg.quests.every((q) => completedPrompts.has(q.id));
-  if (!allPromptsDone) {
-    return apiError('PROMPTS_INCOMPLETE', 'all photo prompts must be complete before feedback', 400);
+  const limited = rateLimit(`feedback:${session.id}`, 10, 60_000);
+  if (!limited.ok) {
+    return apiError('RATE_LIMITED', 'too many attempts; please slow down', 429, {
+      'retry-after': String(limited.retryAfterSeconds),
+    });
   }
 
   if (session.feedbackDone) {

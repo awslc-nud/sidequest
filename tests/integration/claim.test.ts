@@ -27,7 +27,7 @@ async function unlock(): Promise<{ client: ApiClient; sessionId: string }> {
     });
     expect([200, 201]).toContain(res.status);
   }
-  const fb = await client.postJson('/api/feedback', { session_id: sessionId, answers: { q1: 5, q2: 'ok' } });
+  const fb = await client.postJson('/api/feedback', { session_id: sessionId, answers: { q1: 4, q2: 'ok' } });
   expect(fb.status).toBe(200);
   return { client, sessionId };
 }

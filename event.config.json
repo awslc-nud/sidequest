@@ -1,22 +1,21 @@
 {
-  "event_name": "Tech Summit 2026",
-  "event_slug": "tech-summit-2026",
-  "event_date": "Aug 29, 2026",
-  "event_venue": "Main Campus",
-  "allowed_email_domain": "school.edu.ph",
+  "event_name": "AWSLC-NUD General Assembly",
+  "event_slug": "general-assembly",
+  "event_date": "September 25, 2026",
+  "event_venue": "Case Room",
+  "allowed_email_domain": "students.nu-dasma.edu.ph",
   "feedback_keystone": {
     "enabled": true,
-    "questions": [
-      { "id": "q1", "type": "rating_1_5", "label": "How was the event?" },
-      { "id": "q2", "type": "text", "label": "Any suggestions?" }
-    ]
+    "survey_file": "survey.config.json"
   },
   "loot": [
-    { "id": "tardigrade_pin", "label": "1x Tardigrade Pin", "qty": 1, "image": "/assets/prize.png" }
+    { "id": "tardigrade_pin", "label": "1x 'Suntukan Tayo' Pin", "qty": 1, "image": "/assets/prize.png" }
   ],
   "quests": [
-    { "id": "prompt_1_arrival", "title": "Arrival Selfie", "description": "Snap yourself at the entrance banner." },
-    { "id": "prompt_2_stage", "title": "Stage Slide", "description": "Photograph the current speaker's slide." },
-    { "id": "prompt_3_booth", "title": "Sponsor Booth", "description": "Capture a sponsor booth in action." }
+    { "id": "prompt_1_byte", "title": "Byte Buddy", "description": "Take a photo with the Byte standee." },
+    { "id": "prompt_2_party", "title": "Party Up!", "description": "Take a group photo with fellow attendees." },
+    { "id": "prompt_3_food", "title": "Food Check", "description": "Take a photo of your food/snacks during the event." },
+    { "id": "prompt_4_speaker", "title": "Speaker Spotlight", "description": "Take a photo of the speaker while speaking." },
+    { "id": "prompt_5_friend", "title": "New Friend Unlocked", "description": "Take a photo with someone you met for the first time at the event." }
   ]
 }

@@ -8,6 +8,8 @@ import Database from 'better-sqlite3';
 export const PROJECT_ROOT = path.resolve(import.meta.dirname, '..', '..');
 export const MIGRATIONS_DIR = path.join(PROJECT_ROOT, 'prisma', 'migrations');
 export const DEFAULT_SECRET = 'test-marshal-secret-key-0123456789';
+/** Stable event fixture so integration tests don't depend on the live event.config.json. */
+export const DEFAULT_CONFIG_FILE = path.join(PROJECT_ROOT, 'tests', 'fixtures', 'config.json');
 
 function applyMigrations(dbPath: string): void {
   const dirs = fs
@@ -62,11 +64,12 @@ export async function startServer(opts: ServerOptions = {}): Promise<TestServer>
     DATABASE_URL: `file:${dbPath}`,
     SIDEQUEST_DATA_DIR: dataDir,
     MARSHAL_SECRET_KEY: DEFAULT_SECRET,
+    // Keep integration tests deterministic; the limiter has its own unit test.
+    SIDEQUEST_RATE_LIMIT_DISABLED: '1',
+    // Pin the event config to the fixture so the live config can change freely.
+    EVENT_CONFIG_PATH: opts.configFile ?? DEFAULT_CONFIG_FILE,
     ...opts.env,
   };
-  if (opts.configFile) {
-    env.EVENT_CONFIG_PATH = opts.configFile;
-  }
 
   const child: ChildProcess = spawn('node', [path.join(PROJECT_ROOT, 'dist/server/entry.mjs')], {
     cwd: PROJECT_ROOT,

@@ -55,6 +55,8 @@ COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/prisma.config.ts ./prisma.config.ts
 COPY --from=build /app/package.json ./package.json
 COPY event.config.json ./event.config.json
+COPY survey.config.json ./survey.config.json
+COPY terms ./terms
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 # SQLite DB + uploaded media live on one volume; the server runs unprivileged.
@@ -67,6 +69,6 @@ VOLUME ["/data"]
 EXPOSE 4321
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||4321)+'/api/config').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||4321)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

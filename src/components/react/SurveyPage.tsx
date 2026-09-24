@@ -5,7 +5,7 @@ import { ensureSessionId } from '../../client/session';
 import { getJson } from '../../client/http';
 import FeedbackForm from './FeedbackForm';
 
-type Phase = 'loading' | 'ready' | 'submitted' | 'disabled' | 'incomplete' | 'error';
+type Phase = 'loading' | 'ready' | 'submitted' | 'disabled' | 'error';
 
 /**
  * Standalone survey form (`/survey`).
@@ -13,8 +13,8 @@ type Phase = 'loading' | 'ready' | 'submitted' | 'disabled' | 'incomplete' | 'er
  * The same `FeedbackForm` + `POST /api/feedback` as the attendee modal, but at a
  * shareable URL — so the event can offer the survey as either a modal (auto-pops
  * once quests are done on `/`) or a standalone page. Server state is
- * authoritative: this page re-checks the session, config and progress before
- * rendering the form.
+ * authoritative: this page re-checks the session and config before rendering the
+ * form. The survey does **not** require the photo quests to be complete.
  */
 export default function SurveyPage() {
   const [phase, setPhase] = useState<Phase>('loading');
@@ -49,7 +49,6 @@ export default function SurveyPage() {
         }
         const p = progressRes.body;
         if (p.feedback_done) setPhase('submitted');
-        else if (p.completed_prompt_ids.length < configRes.body.quests.length) setPhase('incomplete');
         else setPhase('ready');
       } catch {
         if (alive) setPhase('error');
@@ -82,15 +81,6 @@ export default function SurveyPage() {
           icon={<CheckCircle2 className="h-8 w-8 text-brand-accent" />}
           title="Thanks — you're all set!"
           body="Your answers have been recorded."
-        />
-      )}
-
-      {phase === 'incomplete' && (
-        <StatusCard
-          icon={<ClipboardList className="h-8 w-8 text-brand-track" />}
-          title="Finish your quests first"
-          body="Complete every photo quest, then come back to fill this in."
-          cta={{ href: '/', label: 'Back to quests' }}
         />
       )}
 

@@ -32,11 +32,19 @@ describe('contract: GET /api/config (§3.1)', () => {
     }
     expect(body.feedback_keystone.enabled).toBe(true);
     expect(Array.isArray(body.feedback_keystone.questions)).toBe(true);
+    expect(Array.isArray(body.feedback_keystone.sections)).toBe(true);
+    expect(body.feedback_keystone.sections[0].questions.length).toBe(body.feedback_keystone.questions.length);
 
     const text = JSON.stringify(body);
     expect(text).not.toContain('MARSHAL_SECRET_KEY');
     expect(text).not.toContain('MARSHAL');
     expect(body.loot).toBeUndefined(); // loot/cost internals never leak
+
+    // Defense-in-depth headers are applied to API responses too.
+    expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(res.headers.get('x-frame-options')).toBe('DENY');
+    expect(res.headers.get('content-security-policy')).toContain("frame-ancestors 'none'");
+    expect(res.headers.get('cache-control')).toContain('no-store');
   });
 });
 

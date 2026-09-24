@@ -36,20 +36,20 @@ export default function FeedbackModal({ cfg, sessionId, onSubmitted, onClose }: 
       role="dialog"
       aria-modal="true"
       aria-label="Post-event survey"
-      className="fixed inset-0 z-50 flex items-end justify-center bg-brand-ink/40 p-4 sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-brand-ink/40 p-3 sm:items-center sm:p-4"
     >
-      <div className="w-full max-w-md">
-        <div className="relative">
-          <button
-            ref={closeRef}
-            type="button"
-            onClick={onClose}
-            aria-label="Close survey"
-            className="absolute right-3 top-3 z-10 rounded-full p-1.5 text-brand-muted transition hover:bg-brand-bg hover:text-brand-ink"
-          >
-            <X className="h-4 w-4" />
-          </button>
-          <FeedbackForm cfg={cfg} sessionId={sessionId} onSubmitted={onSubmitted} />
+      <div className="relative flex max-h-[92vh] w-full max-w-md flex-col">
+        <button
+          ref={closeRef}
+          type="button"
+          onClick={onClose}
+          aria-label="Close survey"
+          className="absolute right-3 top-3 z-20 rounded-full border border-brand-track bg-brand-white/90 p-1.5 text-brand-muted shadow-sm backdrop-blur transition hover:bg-brand-bg hover:text-brand-ink"
+        >
+          <X className="h-4 w-4" />
+        </button>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <FeedbackForm cfg={cfg} sessionId={sessionId} onSubmitted={onSubmitted} termsKind="survey-modal" />
         </div>
       </div>
     </div>

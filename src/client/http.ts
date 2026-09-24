@@ -11,7 +11,9 @@ export async function postJson<T = any>(path: string, body: unknown): Promise<{ 
 }
 
 export async function getJson<T = any>(path: string): Promise<{ status: number; body: T }> {
-  const res = await fetch(path, { method: 'GET', credentials: 'same-origin' });
+  // `no-store` bypasses any previously cached response (e.g. an /api/config
+  // fetched before a deploy added new fields) so server state is always fresh.
+  const res = await fetch(path, { method: 'GET', credentials: 'same-origin', cache: 'no-store' });
   return { status: res.status, body: (await res.json().catch(() => null)) as T };
 }
 

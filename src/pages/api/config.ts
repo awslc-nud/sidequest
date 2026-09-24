@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getEventConfig, ConfigError } from '../../lib/config/loadEventConfig';
+import { getTerms } from '../../lib/config/loadTerms';
 import { totalTaskCount } from '../../lib/config/schema';
 import { apiError, json } from '../../lib/api/http';
 
@@ -19,8 +20,25 @@ export const GET: APIRoute = () => {
       quests: cfg.quests.map((q) => ({ id: q.id, title: q.title, description: q.description })),
       feedback_keystone: {
         enabled: cfg.feedback_keystone.enabled,
-        questions: cfg.feedback_keystone.questions.map((q) => ({ id: q.id, type: q.type, label: q.label })),
+        sections: cfg.feedback_keystone.sections.map((s) => ({
+          id: s.id,
+          title: s.title,
+          description: s.description,
+          questions: s.questions.map((q) => ({
+            id: q.id,
+            type: q.type,
+            label: q.label,
+            placeholder: q.placeholder,
+          })),
+        })),
+        questions: cfg.feedback_keystone.questions.map((q) => ({
+          id: q.id,
+          type: q.type,
+          label: q.label,
+          placeholder: q.placeholder,
+        })),
       },
+      terms: getTerms(),
       total_tasks: totalTaskCount(cfg),
     });
   } catch (e) {

@@ -37,6 +37,14 @@ describe('progress + feedback (§3.4/§3.5/AC-03)', () => {
     expect((await res.json()).error.code).toBe('SESSION_NOT_FOUND');
   });
 
+  it("refuses to read another browser's session by id (object-level auth)", async () => {
+    const { sessionId } = await ApiClient.newSession(server.baseUrl);
+    // A cookie-less client that merely knows the id must not see the session.
+    const res = await serverRequest().get(`/api/progress/${sessionId}`);
+    expect(res.status).toBe(404);
+    expect((await res.json()).error.code).toBe('SESSION_NOT_FOUND');
+  });
+
   it('feedback disabled fixture: N excludes feedback and the final upload unlocks', async () => {
     const off = await startServer({ configFile: path.join(FIXTURE_DIR, 'config.feedback-off.json') });
     try {
@@ -77,38 +85,30 @@ describe('progress + feedback (§3.4/§3.5/AC-03)', () => {
     }
   });
 
-  it('survey is a separate step: PROMPTS_INCOMPLETE before quests, excluded from N, chest already unlocked', async () => {
+  it('survey is independent of quests, excluded from N, and does not change progress', async () => {
     const { client, sessionId } = await ApiClient.newSession(server.baseUrl);
 
+    // The survey no longer requires the photo quests to be complete.
     const early = await client.postJson('/api/feedback', {
       session_id: sessionId,
-      answers: { q1: 5, q2: 'x' },
+      answers: { q1: 4, q2: 'x' },
     });
-    expect(early.status).toBe(400);
-    expect((await early.json()).error.code).toBe('PROMPTS_INCOMPLETE');
+    expect(early.status).toBe(200);
+    expect((await early.json()).feedback_done).toBe(true);
 
-    // complete the 3 photo quests — the chest unlocks on the final upload
+    // The progress ledger is untouched: still 0/3 and the chest stays locked.
+    const pre = await (await client.get(`/api/progress/${sessionId}`)).json();
+    expect(pre.completed).toBe(0);
+    expect(pre.total).toBe(3); // survey excluded from N
+    expect(pre.feedback_done).toBe(true);
+    expect(pre.chest_unlocked).toBe(false);
+
+    // Completing the 3 photo quests still unlocks the chest on the final upload.
     await uploadAll(client, sessionId);
-    const before = await (await client.get(`/api/progress/${sessionId}`)).json();
-    expect(before.completed).toBe(3);
-    expect(before.total).toBe(3); // survey excluded from N
-    expect(before.chest_unlocked).toBe(true);
-    expect(before.feedback_done).toBe(false);
-
-    const fb = await client.postJson('/api/feedback', {
-      session_id: sessionId,
-      answers: { q1: 5, q2: 'great' },
-    });
-    const fbBody = await fb.json();
-    expect(fb.status).toBe(200);
-    expect(fbBody.progress.completed).toBe(3);
-    expect(fbBody.progress.total).toBe(3);
-    expect(fbBody.feedback_done).toBe(true);
-
-    // the survey does not change the progress ledger
     const after = await (await client.get(`/api/progress/${sessionId}`)).json();
     expect(after.completed).toBe(3);
     expect(after.total).toBe(3);
+    expect(after.chest_unlocked).toBe(true);
     expect(after.feedback_done).toBe(true);
 
     // duplicate feedback is rejected

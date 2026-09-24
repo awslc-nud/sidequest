@@ -1,5 +1,19 @@
 /** Wire types matching the API contracts in spec §3. */
 
+export interface PublicFeedbackQuestion {
+  id: string;
+  type: 'rating_1_4' | 'text' | 'boolean';
+  label: string;
+  placeholder?: string;
+}
+
+export interface PublicFeedbackSection {
+  id: string;
+  title?: string;
+  description?: string;
+  questions: PublicFeedbackQuestion[];
+}
+
 export interface PublicConfig {
   event_name: string;
   event_slug: string;
@@ -8,7 +22,15 @@ export interface PublicConfig {
   event_venue: string | null;
   allowed_email_domain: string;
   quests: Array<{ id: string; title: string; description: string }>;
-  feedback_keystone: { enabled: boolean; questions: Array<{ id: string; type: 'rating_1_5' | 'text' | 'boolean'; label: string }> };
+  feedback_keystone: {
+    enabled: boolean;
+    /** Normalized groups of questions (a flat list arrives as one untitled section). */
+    sections: PublicFeedbackSection[];
+    /** Flattened convenience list of every question, in display order. */
+    questions: PublicFeedbackQuestion[];
+  };
+  /** Editable terms shown in blocking agreement modals; empty string = no gate. */
+  terms: { quest: string; survey: string };
   total_tasks: number;
 }
 

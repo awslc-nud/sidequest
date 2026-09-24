@@ -1,0 +1,75 @@
+{
+  "sections": [
+  {
+    "title": "Crafting and Comprehending Executive Orders and Resolutions",
+    "questions": [
+      { "type": "rating_1_4", "label": "Is the activity relevant/important to you?" },
+      { "type": "rating_1_4", "label": "Is the program relevant to the course you're in?" },
+      { "type": "rating_1_4", "label": "Were the objectives clear and communicated before the activity?" },
+      { "type": "rating_1_4", "label": "Were the objectives met by the activity?" },
+      { "type": "rating_1_4", "label": "Was the venue proper for this kind of activity?" },
+      { "type": "rating_1_4", "label": "Did the activity start and end on time?" },
+      { "type": "rating_1_4", "label": "Did the organizers maintain an orderly environment all throughout the activity?" },
+      { "type": "rating_1_4", "label": "Was the event/activity well-advertised/properly announced?" },
+      { "type": "rating_1_4", "label": "Would you recommend this activity to your classmates/friends?" },
+      { "type": "rating_1_4", "label": "Do you want an activity like this to happen more often?" },
+      { "type": "rating_1_4", "label": "Overall evaluation" }
+    ]
+  },
+  {
+    "title": "About the Speaker/Resource person (if applicable)",
+    "questions": [
+      { "type": "rating_1_4", "label": "Was the speaker well-prepared and knowledgeable on the topic?" },
+      { "type": "rating_1_4", "label": "Did the speaker use different and appropriate methods in delivering the topic?" },
+      { "type": "rating_1_4", "label": "Was the speaker able to connect with the audience and catch their attention?" }
+    ]
+  },
+  {
+    "title": "Meals (if applicable)",
+    "questions": [
+      { "type": "rating_1_4", "label": "Were the meals/snacks provided enough to fill you?" },
+      { "type": "rating_1_4", "label": "Did the meals/snacks have a pleasant taste?" }
+
+    ]
+
+  },
+
+  {
+    "title": "Handouts (if applicable)",
+    "questions": [
+      { "type": "rating_1_4", "label": "Are the handouts provided useful?" },
+      { "type": "rating_1_4", "label": "Is the printing/Soft copy of the handouts clear?" }
+    ]
+  },
+  {
+    "title": "What important knowledge or information did you gain from this activity?",
+    "questions": [
+      {
+        "type": "text",
+        "label": "What important knowledge or information did you gain from this activity?",
+        "placeholder": "Share the key takeaways or insights you gained…"
+      }
+    ]
+  },
+  {
+    "title": "What did you like least about the activity?",
+    "questions": [
+      {
+        "type": "text",
+        "label": "What did you like least about the activity?",
+        "placeholder": "Tell us what you liked least or what could be improved…"
+      }
+    ]
+  },
+  {
+    "title": "Any other comments/suggestions for further improvement of the activity?",
+    "questions": [
+      {
+        "type": "text",
+        "label": "Any other comments/suggestions for further improvement of the activity?",
+        "placeholder": "Enter any additional feedback or suggestions here…"
+      }
+    ]
+  }
+]
+}
