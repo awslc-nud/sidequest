@@ -13,6 +13,29 @@ const cfg = getEventConfig();
   description="Your unlocked reward and claim pass"
   bodyClass="bg-brand-bg text-brand-ink antialiased"
 >
+  <div id="reward-intro-cover" class="reward-intro-cover" aria-hidden="true"></div>
+
+  <script is:inline>
+    (function () {
+      var KEY = 'sq-reward-intro';
+      var cover = document.getElementById('reward-intro-cover');
+      if (!cover) return;
+      try {
+        if (sessionStorage.getItem(KEY) !== '1') return;
+        sessionStorage.removeItem(KEY);
+      } catch (e) {
+        return;
+      }
+      cover.classList.add('is-visible');
+      setTimeout(function () {
+        cover.classList.add('is-sucking');
+      }, 250);
+      setTimeout(function () {
+        cover.remove();
+      }, 1200);
+    })();
+  </script>
+
   <AppShell>
     <UnderwaterBackdrop />
     <RewardPage loot={cfg.loot} client:load />

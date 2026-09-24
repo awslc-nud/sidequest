@@ -8,15 +8,28 @@ import MascotChestHero from '../components/hero/MascotChestHero';
 import ProgressTracker from '../components/missions/ProgressTracker';
 import MissionList from '../components/missions/MissionList';
 import CaptureReview from '../components/react/CaptureReview';
+import TermsGate from '../components/react/TermsGate';
 import { FINALE_SHAKE_DURATION_MS, useQuestTracker } from '../hooks/useQuestTracker';
 
 /** End-of-run sequence once the final quest lands. */
 type Finale = 'none' | 'shaking' | 'opening' | 'flash';
 
-/** How long the opened chest is shown before the flash to the reward page. */
-const FINALE_OPEN_HOLD_MS = 900;
-/** Flash fade duration before navigating (kept in sync with the overlay class). */
-const FINALE_FLASH_MS = 380;
+/** How long the opened chest is shown while the star blooms inside it. */
+const FINALE_OPEN_HOLD_MS = 700;
+/** How long the star takes to flood the screen before navigating. */
+const FINALE_FLASH_MS = 600;
+/** Flags `/reward` to keep the accent cover and suck it into the prize. */
+const REWARD_INTRO_KEY = 'sq-reward-intro';
+
+/** Navigate to the reward, signalling the accent hand-off cover. */
+function goToReward() {
+  try {
+    sessionStorage.setItem(REWARD_INTRO_KEY, '1');
+  } catch {
+    // sessionStorage can throw in private mode — the cover is non-essential.
+  }
+  window.location.assign('/reward');
+}
 
 /**
  * Top-level attendee screen: the polished mission tracker driven by the real
@@ -40,6 +53,7 @@ export default function MissionsScreen() {
     capturing,
     isShaking,
     shakeIntensity,
+    shakeDurationMs,
     startCapture,
     cancelCapture,
     confirmCapture,
@@ -52,6 +66,7 @@ export default function MissionsScreen() {
   const [finale, setFinale] = useState<Finale>('none');
   const [trackedComplete, setTrackedComplete] = useState<boolean | null>(null);
   const [redirect, setRedirect] = useState(false);
+  const [flashOrigin, setFlashOrigin] = useState<{ x: number; y: number } | null>(null);
   const serverComplete = progress?.chest_unlocked ?? false;
 
   // Derive the completion transition during render (not in an effect) so the
@@ -72,6 +87,14 @@ export default function MissionsScreen() {
   }, [redirect]);
 
   useEffect(() => {
+    if (finale !== 'opening') return;
+    const chest = document.getElementById('reward-chest');
+    if (!chest) return;
+    const rect = chest.getBoundingClientRect();
+    setFlashOrigin({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+  }, [finale]);
+
+  useEffect(() => {
     if (finale === 'shaking') {
       const t = setTimeout(() => setFinale('opening'), FINALE_SHAKE_DURATION_MS);
       return () => clearTimeout(t);
@@ -79,14 +102,14 @@ export default function MissionsScreen() {
     if (finale === 'opening') {
       const reduce = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
       if (reduce) {
-        window.location.assign('/reward');
+        goToReward();
         return;
       }
       const t = setTimeout(() => setFinale('flash'), FINALE_OPEN_HOLD_MS);
       return () => clearTimeout(t);
     }
     if (finale === 'flash') {
-      const t = setTimeout(() => window.location.assign('/reward'), FINALE_FLASH_MS);
+      const t = setTimeout(goToReward, FINALE_FLASH_MS);
       return () => clearTimeout(t);
     }
   }, [finale]);
@@ -117,10 +140,16 @@ export default function MissionsScreen() {
   const failureMessages = Object.fromEntries(Object.entries(failures).map(([id, f]) => [id, f.message]));
 
   return (
+    <TermsGate kind="quest" title="Quest Terms & Conditions" content={cfg?.terms?.quest ?? ''}>
     <AppShell>
       <UnderwaterBackdrop />
       <EventHeader title={cfg?.event_name ?? 'Loading…'} subtitle={subtitle || undefined} />
-      <MascotChestHero isShaking={heroShaking} shakeIntensity={heroIntensity} isAllCompleted={heroAllCompleted} />
+      <MascotChestHero
+        isShaking={heroShaking}
+        shakeIntensity={heroIntensity}
+        shakeDurationMs={finaleShaking ? FINALE_SHAKE_DURATION_MS : shakeDurationMs}
+        isAllCompleted={heroAllCompleted}
+      />
       <MainPanel>
         {!online && (
           <div
@@ -154,13 +183,24 @@ export default function MissionsScreen() {
         </div>
       )}
 
-      {/* Flash transition out to the reward reveal. */}
-      <div
-        aria-hidden="true"
-        className={`pointer-events-none fixed inset-0 z-[60] bg-brand-white transition-opacity duration-300 ${
-          finale === 'flash' ? 'opacity-100' : 'opacity-0'
-        }`}
-      />
+      {flashOrigin && (finale === 'opening' || finale === 'flash') && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed z-[60] -translate-x-1/2 -translate-y-1/2"
+          style={{ left: flashOrigin.x, top: flashOrigin.y }}
+        >
+          <div
+            className="h-56 w-56"
+            style={{
+              clipPath:
+                'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
+              background: 'radial-gradient(circle, #64CCC3 0 60%, rgba(100,204,195,0) 100%)',
+              animation: `reward-flash ${FINALE_OPEN_HOLD_MS + FINALE_FLASH_MS}ms cubic-bezier(0.12, 0.8, 0.2, 1) forwards`,
+            }}
+          />
+        </div>
+      )}
     </AppShell>
+    </TermsGate>
   );
 }

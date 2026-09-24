@@ -32,6 +32,49 @@
   100% { transform: scale(1); }
 }
 
+/* Reward hand-off: an accent star blooms inside the chest, then bursts to fill
+   the screen before we navigate to /reward. The element is chest-sized and
+   scales up from its centre; the late plateau holds the fill so the flash
+   is actually seen before the page changes. */
+@keyframes reward-flash {
+  0% { transform: scale(0); opacity: 0; }
+  12% { transform: scale(0.9); opacity: 1; }
+  38% { transform: scale(1.2); opacity: 1; }
+  62% { transform: scale(30); opacity: 1; }
+  100% { transform: scale(30); opacity: 1; }
+}
+
+/* Marshal scanner viewfinder: a thin line sweeping down the camera preview so
+   the volunteer can tell the camera is live and where to aim the QR. */
+@keyframes qr-scan {
+  0% { top: 1.5rem; }
+  50% { top: calc(100% - 1.5rem); }
+  100% { top: 1.5rem; }
+}
+
+/* `/reward` hand-off: the accent screen from the tracker is carried over and
+   then sucked into the prize. Shown pre-paint by the inline script in
+   `reward.astro`, then `is-sucking` collapses the circle into the reward. */
+.reward-intro-cover {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  background: #64ccc3;
+  pointer-events: none;
+  clip-path: circle(150% at 50% 42%);
+}
+
+.reward-intro-cover.is-visible {
+  display: block;
+}
+
+.reward-intro-cover.is-sucking {
+  /* Non-linear so it lingers full-screen, then snaps into the prize. */
+  transition: clip-path 700ms cubic-bezier(0.6, 0, 0.75, 0.25);
+  clip-path: circle(0% at 50% 42%);
+}
+
 html {
   /* Mission tracker is light-dominant (pale-mint `brand-bg`); the dark
      marshal/admin pages re-declare `dark` via their body class. */
@@ -45,3 +88,46 @@ body {
   font-family: var(--font-sans);
   min-height: 100vh;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Markdown rendered inside the terms & conditions modal.
+   Tailwind's preflight strips heading/list styling, so restore a
+   compact, readable set for `.terms-markdown` descendants.
+   ───────────────────────────────────────────────────────────── */
+.terms-markdown > :first-child { margin-top: 0; }
+.terms-markdown > :last-child { margin-bottom: 0; }
+.terms-markdown p { margin: 0.5rem 0; }
+.terms-markdown h1 { margin: 0.9rem 0 0.4rem; font-size: 1.1rem; font-weight: 700; }
+.terms-markdown h2 { margin: 0.85rem 0 0.35rem; font-size: 1rem; font-weight: 700; }
+.terms-markdown h3 { margin: 0.75rem 0 0.3rem; font-size: 0.925rem; font-weight: 700; }
+.terms-markdown h4,
+.terms-markdown h5,
+.terms-markdown h6 { margin: 0.7rem 0 0.3rem; font-weight: 600; }
+.terms-markdown ul { margin: 0.5rem 0; padding-left: 1.25rem; list-style: disc; }
+.terms-markdown ol { margin: 0.5rem 0; padding-left: 1.25rem; list-style: decimal; }
+.terms-markdown li { margin: 0.2rem 0; }
+.terms-markdown li > ul,
+.terms-markdown li > ol { margin: 0.2rem 0; }
+.terms-markdown a { color: var(--color-brand-deep, #0f766e); text-decoration: underline; text-underline-offset: 2px; }
+.terms-markdown strong { font-weight: 700; }
+.terms-markdown em { font-style: italic; }
+.terms-markdown code {
+  padding: 0.1em 0.3em;
+  border-radius: 0.25rem;
+  background: rgb(0 0 0 / 6%);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.85em;
+}
+.terms-markdown pre { margin: 0.6rem 0; padding: 0.6rem; border-radius: 0.5rem; background: rgb(0 0 0 / 6%); overflow-x: auto; }
+.terms-markdown pre code { padding: 0; background: none; }
+.terms-markdown blockquote {
+  margin: 0.6rem 0;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--color-brand-track, #d4d4d8);
+  color: var(--color-brand-muted, #71717a);
+}
+.terms-markdown hr { margin: 0.9rem 0; border: 0; border-top: 1px solid var(--color-brand-track, #d4d4d8); }
+.terms-markdown table { width: 100%; margin: 0.6rem 0; border-collapse: collapse; font-size: 0.85em; }
+.terms-markdown th,
+.terms-markdown td { padding: 0.3rem 0.5rem; border: 1px solid var(--color-brand-track, #d4d4d8); text-align: left; }
+.terms-markdown th { font-weight: 600; }

@@ -3,10 +3,12 @@ import { colors, radius } from './src/styles/tokens';
 /**
  * Chest-shake keyframes (`ui-spec.md` §6).
  *
- * The chest alternates direction `CHEST_SHAKE_STEPS` times across the run, so a
- * stronger shake is both bigger **and** more frantic. Amplitude/frequency are
- * driven by the `--chest-shake-{x,y,rot,scale}` CSS variables (set inline from
- * completion progress); the fallbacks are the spec's baseline wobble.
+ * The chest alternates direction `CHEST_SHAKE_STEPS` times per cycle, so a
+ * stronger shake is both bigger **and** more frantic. Each tier repeats the
+ * cycle (`animationIterationCount`, set inline) for longer, so later shakes
+ * rattle for more cycles as well as harder. Amplitude is driven by the
+ * `--chest-shake-{x,y,rot,scale}` CSS variables (set inline from completion
+ * progress); the fallbacks are the spec's baseline wobble.
  */
 const CHEST_SHAKE_STEPS = 9;
 const chestShakeKeyframes = Object.fromEntries(

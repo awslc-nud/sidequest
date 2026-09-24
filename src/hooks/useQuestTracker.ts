@@ -13,15 +13,21 @@ import {
 import { clientUuid } from '../client/uuid';
 import type { Mission, MissionIcon } from '../components/missions/types';
 
-/** How long the chest shake sequence runs (ui-spec §6). */
-export const SHAKE_DURATION_MS = 500;
+/** One full rattle cycle — the base duration of the `chest-shake` keyframes. */
+export const SHAKE_CYCLE_MS = 500;
+
+/** How long the weakest non-final shake runs (~1 cycle). */
+export const SHAKE_DURATION_MIN_MS = 500;
+
+/** How long the strongest non-final shake runs (~3 cycles). */
+export const SHAKE_DURATION_MAX_MS = 1500;
 
 /**
- * Slightly longer shake for the **final** quest: after the last photo lands the
- * chest rattles at full strength for a beat longer to build suspense before it
- * pops open and the screen flashes to the reward reveal. Tune here.
+ * The **final** quest shakes longest: after the last photo lands the chest
+ * rattles at full strength for several cycles to build suspense before it pops
+ * open and the screen flashes to the reward reveal. Tune here.
  */
-export const FINALE_SHAKE_DURATION_MS = 900;
+export const FINALE_SHAKE_DURATION_MS = 2000;
 
 /**
  * Exponent applied to the completion fraction to ease the shake in. Early
@@ -29,7 +35,7 @@ export const FINALE_SHAKE_DURATION_MS = 900;
  * full strength. Because the fraction is `completed / total`, this shape adapts
  * to a dynamic quest count: more quests ⇒ smaller steps between shakes.
  */
-export const SHAKE_INTENSITY_CURVE = 4;
+export const SHAKE_INTENSITY_CURVE = 2;
 
 export interface QuestFailure {
   attempts: number;
@@ -54,6 +60,8 @@ export interface QuestTracker {
   capturing: CapturingQuest | null;
   isShaking: boolean;
   shakeIntensity: number;
+  /** How long the current shake runs (ms) — grows with each tier. */
+  shakeDurationMs: number;
   /** Chest fully unlocked on the server (final state — drives the open chest). */
   isAllCompleted: boolean;
   /** Every quest has a synced photo (feedback may still be outstanding). */
@@ -112,6 +120,7 @@ export function useQuestTracker(): QuestTracker {
   const [error, setError] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
   const [shakeIntensity, setShakeIntensity] = useState(0);
+  const [shakeDurationMs, setShakeDurationMs] = useState(SHAKE_DURATION_MIN_MS);
 
   const sidRef = useRef<string | null>(null);
   const cfgRef = useRef<PublicConfig | null>(null);
@@ -289,10 +298,17 @@ export function useQuestTracker(): QuestTracker {
 
     const isFinal = progress.chest_unlocked;
     const fraction = progress.total > 0 ? progress.completed / progress.total : 1;
-    setShakeIntensity(isFinal ? 1 : fraction ** SHAKE_INTENSITY_CURVE);
+    const intensity = isFinal ? 1 : fraction ** SHAKE_INTENSITY_CURVE;
+    // Later tiers rattle for more whole cycles: duration grows with intensity.
+    const rawDuration = SHAKE_DURATION_MIN_MS + (SHAKE_DURATION_MAX_MS - SHAKE_DURATION_MIN_MS) * intensity;
+    const duration = isFinal
+      ? FINALE_SHAKE_DURATION_MS
+      : Math.round(rawDuration / SHAKE_CYCLE_MS) * SHAKE_CYCLE_MS;
+    setShakeIntensity(intensity);
+    setShakeDurationMs(duration);
     setIsShaking(true);
     if (shakeTimer.current) clearTimeout(shakeTimer.current);
-    shakeTimer.current = setTimeout(() => setIsShaking(false), isFinal ? FINALE_SHAKE_DURATION_MS : SHAKE_DURATION_MS);
+    shakeTimer.current = setTimeout(() => setIsShaking(false), duration);
   }, [progress]);
 
   // Clear any pending shake timer on unmount.
@@ -370,6 +386,7 @@ export function useQuestTracker(): QuestTracker {
     capturing,
     isShaking,
     shakeIntensity,
+    shakeDurationMs,
     isAllCompleted: progress?.chest_unlocked ?? false,
     allQuestsDone: !!cfg && !!progress && progress.completed_prompt_ids.length >= cfg.quests.length,
     refresh,
